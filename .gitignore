@@ -1,0 +1,20 @@
+# CMake / build directories
+/build/
+/build_*/
+/out/
+/cmake-build-*/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+
+# Others
+CMakeSettings.json
