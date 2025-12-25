@@ -9,6 +9,34 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+#---- Libraries (FetchContent) ----
+# include(FetchContent)
+
+# FetchContent_Declare(
+  # nlohmann_json
+  # GIT_REPOSITORY https://github.com/nlohmann/json.git
+  # GIT_TAG v3.11.3
+# )
+# FetchContent_MakeAvailable(nlohmann_json)
+
+# FetchContent_Declare(
+  # doctest
+  # GIT_REPOSITORY https://github.com/doctest/doctest.git
+  # GIT_TAG v2.4.11
+# )
+# FetchContent_MakeAvailable(doctest)
+
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nlohmann_json/include
+)
+
+add_library(doctest INTERFACE)
+target_include_directories(doctest INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest
+)
+
+
 # 一个可执行程序 demo
 add_executable(cadutils_demo
     src/main.cpp
@@ -27,6 +55,9 @@ target_include_directories(cadutils_demo
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/include/cadutils
 )
+
+target_link_libraries(cadutils_demo PUBLIC nlohmann_json)
+#target_link_libraries(cadutils_demo PRIVATE doctest)
 
 # 常用的 warning（MSVC / GCC / Clang）
 if (MSVC)

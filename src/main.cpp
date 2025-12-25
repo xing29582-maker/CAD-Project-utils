@@ -1,5 +1,6 @@
 #include <iostream>
 #include "distance.h"
+#include <nlohmann/json.hpp>
 
 int main()
 {
