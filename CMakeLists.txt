@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(CADProjectUtils
+project(cadutils_demo
     VERSION 0.1.0
     LANGUAGES CXX
 )
@@ -8,6 +8,11 @@ project(CADProjectUtils
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# 可选：统一输出目录（方便找 exe/dll）
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 #---- Libraries (FetchContent) ----
 # include(FetchContent)
@@ -36,37 +41,34 @@ target_include_directories(doctest INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest
 )
 
+find_package(OpenSceneGraph REQUIRED COMPONENTS osg osgDB osgUtil osgViewer OpenThreads)
+#target_include_directories(cadutils_demo PRIVATE ${OPENSCENEGRAPH_INCLUDE_DIRS})
+#target_link_libraries(cadutils_demo PRIVATE ${OPENSCENEGRAPH_LIBRARIES})
 
-# 一个可执行程序 demo
-add_executable(cadutils_demo
-    src/main.cpp
-	src/include/cadutils/distance.h
+find_package(OpenCASCADE REQUIRED)
+#target_link_libraries(cadutils_demo PRIVATE ${OpenCASCADE_LIBRARIES})
+#target_include_directories(cadutils_demo PRIVATE ${OpenCASCADE_INCLUDE_DIR})
+
+# Qt 根目录（工程内）
+set(QT_ROOT
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/qt-5.14.0/5.14.0/msvc2017_64
 )
 
-# 按真实目录结构在 VS 中分组
-source_group(
-    TREE ${CMAKE_CURRENT_SOURCE_DIR}/src
-    FILES
-        src/main.cpp
-        src/include/cadutils/distance.h
-)
+list(APPEND CMAKE_PREFIX_PATH ${QT_ROOT})
 
-target_include_directories(cadutils_demo
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/include/cadutils
-)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 
-target_link_libraries(cadutils_demo PUBLIC nlohmann_json)
+
+#target_link_libraries(cadutils_demo PUBLIC nlohmann_json)
 #target_link_libraries(cadutils_demo PRIVATE doctest)
 
-# 常用的 warning（MSVC / GCC / Clang）
-if (MSVC)
-    target_compile_options(cadutils_demo PRIVATE /W4 /permissive-)
-else()
-    target_compile_options(cadutils_demo PRIVATE -Wall -Wextra -Wpedantic)
+# MSVC 常用设置（可选）
+if(MSVC)
+  add_compile_options(/W4 /permissive-)
 endif()
 
-# 设置 Visual Studio 默认启动项目
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    PROPERTY VS_STARTUP_PROJECT cadutils_demo
-)
+	
+# 让 VS 按文件夹显示
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+add_subdirectory(src)
