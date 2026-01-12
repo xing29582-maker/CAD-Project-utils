@@ -2,6 +2,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+include(ThirdParty)
+tp_add_occt()
+tp_add_osg()
+
 # 方案1：自动收集（省事）
 file(GLOB_RECURSE APP_SRC CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -30,6 +34,14 @@ target_link_libraries(cadutils_application PUBLIC Qt5::Core Qt5::Gui Qt5::Widget
 target_link_libraries(cadutils_application PUBLIC
     cadutils_data
 )
+target_link_libraries(cadutils_application PRIVATE
+  thirdparty::occt
+  thirdparty::osg
+)
+
+# 运行必需：拷 dll + data
+tp_occt_runtime(cadutils_application)
+tp_osg_runtime(cadutils_application)
 
 # VS 里按目录分组（可选）
 source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${APP_SRC} ${APP_HDR})

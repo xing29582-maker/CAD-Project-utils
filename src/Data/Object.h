@@ -1,43 +1,24 @@
 #pragma once
 
-#include"DataExport.h"
-
-#include <string>
-#include <vector>
-#include <memory>
+#include "DataExport.h"
+#include "IObject.h"
 
 namespace cadutils 
 {        
-    // 先做简单属性：vector<pair>
-    using Property = std::pair<std::string, std::string>;
 
-    class CADUTILS_DATA_API Object 
+    class CADUTILS_DATA_API Object : public IObject
     {
     public:
-        explicit Object(std::string name);
-        virtual ~Object() = default;
+        explicit Object(const std::string &name);
+        virtual ~Object() noexcept = default;
 
-        const std::string& name() const;
-        const std::vector<Property>& properties() const;
-
-    protected:
-        void addProperty(std::string k, std::string v);
+        virtual const std::string& GetObjectName() const override;
+        virtual int64_t GetObjectId() const override;
+        virtual TopoDS_Shape  buildShape() override;
 
     private:
-        std::string m_name;
-        std::vector<Property> m_props;
+        friend class Document;
+        std::string m_objName;
+        int64_t m_ObjId;
     };
-
-    class CADUTILS_DATA_API Box : public Object 
-    {
-    public:
-        Box();
-    };
-
-    class CADUTILS_DATA_API Sphere : public Object 
-    {
-    public:
-        Sphere();
-    };
-
 } // namespace cadutils

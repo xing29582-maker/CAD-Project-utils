@@ -8,7 +8,9 @@
 #include <QDockWidget>
 #include <QTreeView>
 #include <QStandardItemModel>
-
+#include "OsgQtWidget.h"
+#include "SceneGraph.h"
+#include "SphereObject.h"
 
 using namespace cadutils;
 
@@ -20,6 +22,13 @@ MainWindow::MainWindow(QWidget* parent)
     buildUi();
     buildDocument();
     buildTreeModel();
+    auto* w = new OsgQtWidget(this);
+    setCentralWidget(w);
+
+    SceneGraph scene;
+    w->root()->addChild(scene.root());
+    scene.syncFromDocument(m_doc);
+
 }
 
 void MainWindow::buildUi()
@@ -62,8 +71,9 @@ void MainWindow::buildUi()
 void MainWindow::buildDocument()
 {
     m_doc = std::make_shared<Document>("Document");
-    m_doc->add(std::make_shared<Box>());
-    m_doc->add(std::make_shared<Sphere>());
+    m_doc->add(std::make_shared<SphereObject>("Sphere", 50.0 ,gp_Pnt(0, 0, 0)));
+    //m_doc->add(std::make_shared<Box>());
+    //m_doc->add(std::make_shared<Sphere>());
 }
 
 
@@ -82,13 +92,13 @@ void MainWindow::buildTreeModel()
     objsItem->setEditable(false);
     docItem->appendRow(objsItem);
 
-    for (const std::shared_ptr<Object>& obj : m_doc->objects())
+    for (const auto& obj : m_doc->GetObjects())
     {
-        QStandardItem* item = new QStandardItem(QString::fromStdString(obj->name()));
+        QStandardItem* item = new QStandardItem(QString::fromStdString(obj.second->GetObjectName()));
         item->setEditable(false);
 
         // 保存 Object*，注意：Object 生命周期由 m_doc 管理，这里存裸指针没问题
-        item->setData(QVariant::fromValue(reinterpret_cast<quintptr>(obj.get())), Role_ObjectPtr);
+        item->setData(QVariant::fromValue(reinterpret_cast<quintptr>(obj.second.get())), Role_ObjectPtr);
         objsItem->appendRow(item);
     }
 
@@ -121,13 +131,13 @@ void MainWindow::buildPropertyModel(const Object* obj)
 
     if (!obj) return;
 
-    for (const auto& [k, v] : obj->properties())
-    {
-        QList<QStandardItem*> row;
-        row << new QStandardItem(QString::fromStdString(k));
-        row << new QStandardItem(QString::fromStdString(v));
-        m_propModel->appendRow(row);
-    }
+    //for (const auto& [k, v] : obj->properties())
+    //{
+    //    QList<QStandardItem*> row;
+    //    row << new QStandardItem(QString::fromStdString(k));
+    //    row << new QStandardItem(QString::fromStdString(v));
+    //    m_propModel->appendRow(row);
+    //}
     m_propView->resizeColumnToContents(0);
 }
 
@@ -141,6 +151,6 @@ void MainWindow::onTreeDoubleClicked(const QModelIndex& idx)
 {
     const auto* obj = objectFromIndex(idx);
     if (obj) {
-        qDebug() << "Double clicked object:" << QString::fromStdString(obj->name());
+        qDebug() << "Double clicked object:" << QString::fromStdString(obj->GetObjectName());
     }
 }

@@ -41,11 +41,11 @@ target_include_directories(doctest INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest
 )
 
-find_package(OpenSceneGraph REQUIRED COMPONENTS osg osgDB osgUtil osgViewer OpenThreads)
+#find_package(OpenSceneGraph REQUIRED COMPONENTS osg osgDB osgUtil osgViewer OpenThreads)
 #target_include_directories(cadutils_demo PRIVATE ${OPENSCENEGRAPH_INCLUDE_DIRS})
 #target_link_libraries(cadutils_demo PRIVATE ${OPENSCENEGRAPH_LIBRARIES})
 
-find_package(OpenCASCADE REQUIRED)
+#find_package(OpenCASCADE REQUIRED)
 #target_link_libraries(cadutils_demo PRIVATE ${OpenCASCADE_LIBRARIES})
 #target_include_directories(cadutils_demo PRIVATE ${OpenCASCADE_INCLUDE_DIR})
 
@@ -70,5 +70,8 @@ endif()
 	
 # 让 VS 按文件夹显示
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# 让我们能 include(cmake/ThirdParty.cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 add_subdirectory(src)

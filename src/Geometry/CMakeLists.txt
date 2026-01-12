@@ -7,13 +7,10 @@ endif()
 
 
 target_include_directories(cadutils_geometry PUBLIC
-  ${CMAKE_SOURCE_DIR}/src/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/Public
 )
 
 target_compile_features(cadutils_geometry PUBLIC cxx_std_17)
-
-# 如果 Geometry 将来用 OCC，就在这里 link OCC（示例，先注释）
-# target_link_libraries(cadutils_geometry PUBLIC OpenCASCADE::TKBRep ...)
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${GEO_SRC} ${GEO_HDR})
 

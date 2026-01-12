@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 namespace cadutils
 {
@@ -17,10 +18,12 @@ namespace cadutils
         const std::string& name() const;
 
         void add(std::shared_ptr<Object> obj);
-        const std::vector<std::shared_ptr<Object>>& objects() const;
+        const std::weak_ptr<Object> GetobjectById(int64_t id) const;
+        const std::unordered_map<int64_t, std::shared_ptr<Object>> &GetObjects() const;
 
     private:
+        int64_t m_nextId;
         std::string m_name;
-        std::vector<std::shared_ptr<Object>> m_objects;
+        std::unordered_map<int64_t, std::shared_ptr<Object>> m_objects;
     };
 }
