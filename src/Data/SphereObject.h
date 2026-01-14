@@ -1,21 +1,20 @@
 #pragma once
 
 #include "Object.h"
-#include <gp_Pnt.hxx>
+#include "Point3d.h"
 
 namespace cadutils 
 {        
-
     class CADUTILS_DATA_API SphereObject : public Object
     {
     public:
-        explicit SphereObject(const std::string &name , double radius, gp_Pnt center );
+        explicit SphereObject(const std::string &name , const Point3d& center , double radius);
         virtual ~SphereObject() noexcept = default;
 
-        TopoDS_Shape  buildShape() override;
+        virtual std::shared_ptr<IBody> buildShape() override;
 
     private:
-        gp_Pnt m_center;
+        Point3d m_center;
         double m_radius;
     };
 } // namespace cadutils

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GeometryExport.h"
+#include "Point3d.h"
 
 #include <memory>
 
@@ -11,6 +12,6 @@ namespace cadutils
 	class CADUTILS_GEOMETRY_API GeoBuildUtils
 	{
 	public:
-		std::shared_ptr<IBody> CreateSphere();
+		static std::shared_ptr<IBody> CreateSphere(const Point3d& center ,double radius);
 	};
 }

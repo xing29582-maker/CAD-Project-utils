@@ -1,11 +1,12 @@
 #pragma once
 
 #include <string>
-
-class TopoDS_Shape;
+#include <memory>
 
 namespace cadutils 
 {        
+    class IBody;
+
     class IObject 
     {
     public:
@@ -13,6 +14,6 @@ namespace cadutils
 
         virtual const std::string& GetObjectName() const = 0;
         virtual int64_t GetObjectId() const = 0;
-        virtual TopoDS_Shape  buildShape() = 0;
+        virtual std::shared_ptr<IBody> buildShape() = 0;
     };
 } // namespace cadutils

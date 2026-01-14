@@ -1,8 +1,9 @@
+add_subdirectory(Common)
 add_subdirectory(Application)
 add_subdirectory(Data)
-add_subdirectory(Geometry)
 add_subdirectory(Platform)
-add_subdirectory(View)
+add_subdirectory(Geometry)
+add_subdirectory(Render)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 

@@ -18,7 +18,7 @@ int64_t cadutils::Object::GetObjectId() const
 	return m_ObjId;
 }
 
-TopoDS_Shape cadutils::Object::buildShape()
+std::shared_ptr<IBody> cadutils::Object::buildShape()
 {
-	return TopoDS_Shape();
+	return nullptr;
 }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GeometryExport.h"
+#include "CommonExport.h"
 #include <memory>
 
 namespace cadutils
 {
-	class CADUTILS_GEOMETRY_API Point3d
+	class CADUTILS_COMMON_API Point3d
 	{
 	public:
         Point3d(double x, double y, double z);

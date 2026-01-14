@@ -1,16 +1,16 @@
 #include "SphereObject.h"
-#include <BRepPrimAPI_MakeSphere.hxx>
+#include "GeoBuildUtils.h"
 
 using namespace cadutils;
 
-cadutils::SphereObject::SphereObject(const std::string& name, double radius, gp_Pnt center)
+cadutils::SphereObject::SphereObject(const std::string& name, const Point3d& center, double radius)
 	:Object(name)
 	, m_radius(radius)
 	, m_center(center)
 {
 }
 
-TopoDS_Shape cadutils::SphereObject::buildShape()
+std::shared_ptr<IBody> cadutils::SphereObject::buildShape()
 {
-	return BRepPrimAPI_MakeSphere(m_center, m_radius).Shape();
+	return GeoBuildUtils::CreateSphere(m_center, m_radius);
 }
