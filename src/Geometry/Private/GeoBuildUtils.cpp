@@ -1,5 +1,5 @@
 #include "GeoBuildUtils.h"
-#include "Body.h"
+#include "OccBody.h"
 
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <TopoDS_Solid.hxx>
@@ -11,5 +11,5 @@ std::shared_ptr<IBody> cadutils::GeoBuildUtils::CreateSphere(const Point3d& cent
 {
     gp_Pnt centerPnt(center.GetX(), center.GetY(), center.GetZ());
     TopoDS_Solid bodyShape = BRepPrimAPI_MakeSphere(centerPnt, radius).Solid();
-    return std::make_shared<Body>(bodyShape);
+    return std::make_shared<OccBody>(bodyShape);
 }

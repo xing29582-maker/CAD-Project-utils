@@ -3,7 +3,7 @@
 using namespace cadutils;
 
 cadutils::Document::Document(const std::string& name)
-	: m_name(name) 
+	: m_name(name)
 	, m_nextId(1)
 {
 }
@@ -20,7 +20,7 @@ void cadutils::Document::add(std::shared_ptr<Object> obj)
 	++m_nextId;
 }
 
-const std::weak_ptr<Object> cadutils::Document::GetobjectById(int64_t id) const
+const std::weak_ptr<Object> cadutils::Document::GetobjectById(ObjectId id) const
 {
 	auto idIter = m_objects.find(id);
 	if (idIter != m_objects.end())
@@ -30,7 +30,12 @@ const std::weak_ptr<Object> cadutils::Document::GetobjectById(int64_t id) const
 	return std::weak_ptr<Object>();
 }
 
-const std::unordered_map<int64_t, std::shared_ptr<Object>>& Document::GetObjects() const
+const std::vector<std::shared_ptr<Object>> Document::GetObjects() const
 {
-	return m_objects;
+	std::vector<std::shared_ptr<Object>> resObj;
+	for (const auto& obj : m_objects)
+	{
+		resObj.emplace_back(obj.second);
+	}
+	return resObj;
 }

@@ -11,6 +11,7 @@ namespace cadutils
 {
     class Document;
     class Object;
+    class RenderSystem;
 
     class CADUTILS_APP_API MainWindow : public QMainWindow
     {
@@ -42,7 +43,9 @@ namespace cadutils
         QStandardItemModel* m_propModel = nullptr;
 
         // Êý¾Ý
-        std::shared_ptr<Document> m_doc;
+         std::shared_ptr<Document> m_doc;
+
+         std::shared_ptr<RenderSystem> m_renderSystem;
     };
 
 } // namespace cadutils

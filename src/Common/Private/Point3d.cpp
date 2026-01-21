@@ -1,5 +1,6 @@
 #include "Point3d.h"
 
+#include <cmath> 
 
 using namespace cadutils;
 
@@ -42,4 +43,67 @@ double cadutils::Point3d::GetY() const
 double cadutils::Point3d::GetZ() const
 {
 	return m_z;
+}
+
+// p2 - p1 = vector
+Vector3d Point3d::operator-(const Point3d& rhs) const
+{
+    return Vector3d(
+        m_x - rhs.m_x,
+        m_y - rhs.m_y,
+        m_z - rhs.m_z
+    );
+}
+
+// p + v
+Point3d Point3d::operator+(const Vector3d& v) const
+{
+    return Point3d(
+        m_x + v.GetX(),
+        m_y + v.GetY(),
+        m_z + v.GetZ()
+    );
+}
+
+// p - v
+Point3d Point3d::operator-(const Vector3d& v) const
+{
+    return Point3d(
+        m_x - v.GetX(),
+        m_y - v.GetY(),
+        m_z - v.GetZ()
+    );
+}
+
+Point3d& Point3d::operator+=(const Vector3d& v)
+{
+    m_x += v.GetX();
+    m_y += v.GetY();
+    m_z += v.GetZ();
+    return *this;
+}
+
+Point3d& Point3d::operator-=(const Vector3d& v)
+{
+    m_x -= v.GetX();
+    m_y -= v.GetY();
+    m_z -= v.GetZ();
+    return *this;
+}
+
+bool Point3d::IsEqual(const Point3d& rhs, double eps) const
+{
+    return std::fabs(m_x - rhs.m_x) <= eps &&
+        std::fabs(m_y - rhs.m_y) <= eps &&
+        std::fabs(m_z - rhs.m_z) <= eps;
+}
+
+bool Point3d::operator==(const Point3d& rhs) const
+{
+    return IsEqual(rhs);
+}
+
+bool Point3d::operator!=(const Point3d& rhs) const
+{
+    return !IsEqual(rhs);
 }

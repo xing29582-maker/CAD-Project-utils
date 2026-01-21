@@ -5,7 +5,7 @@
 
 namespace cadutils 
 {        
-    class CADUTILS_DATA_API SphereObject : public Object
+    class SphereObject : public Object
     {
     public:
         explicit SphereObject(const std::string &name , const Point3d& center , double radius);

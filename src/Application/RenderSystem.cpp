@@ -1,0 +1,43 @@
+#include "RenderSystem.h"
+#include "Document.h"
+#include "GraphicsScene.h"
+#include "GeometryData.h"
+#include "IGraphicsNode.h"
+#include "IRenderView.h"
+
+using namespace cadutils;
+
+cadutils::RenderSystem::RenderSystem(std::shared_ptr<GraphicsScene> gscene, const MeshGenerator &mesher, std::shared_ptr<IRenderView> renderView)
+    :m_gscene(gscene)
+    ,m__mesher(mesher)
+    ,m_renderView(renderView)
+{
+}
+
+void cadutils::RenderSystem::SyncFromDocument(const std::shared_ptr<Document>& doc, const TessellationOptions& opt)
+{
+    // 1) 遍历 Document 中的所有对象
+    for (const auto& obj : doc->GetObjects())
+    {
+        const auto id = obj->GetObjectId();
+        std::shared_ptr<IGraphicsNode> gnode = m_gscene->GetOrCreate(id);  // 取出或创建一个 GraphicsNode
+
+        std::shared_ptr<IBody> body = obj->buildShape();  // 获取几何（IBody）
+        GeometryData geoData = m__mesher.Tessellate(body, opt); // 生成 GeometryData
+
+        gnode->SetGeometryData(geoData); // 塞入 GraphicsNode
+
+    }
+
+    
+}
+
+std::vector<std::shared_ptr<IGraphicsNode>> cadutils::RenderSystem::GetAllGrepNodes() const
+{
+    return m_gscene->GetItems();
+}
+
+void cadutils::RenderSystem::Refresh()
+{
+    m_renderView->refresh(m_gscene->GetAllNodesWithId());
+}

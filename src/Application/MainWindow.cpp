@@ -1,6 +1,13 @@
 #include "MainWindow.h"
 #include "Document.h"
 #include "Object.h"
+#include "SphereObject.h"
+#include "Point3d.h"
+#include "IRenderView.h"
+#include "GraphicsScene.h"
+#include "MeshGenerator.h"
+#include "RenderSystem.h"
+#include "TessellationOptions.h"
 
 #include <QItemSelectionModel>
 #include <QHeaderView>
@@ -8,9 +15,6 @@
 #include <QDockWidget>
 #include <QTreeView>
 #include <QStandardItemModel>
-#include "OsgQtWidget.h"
-#include "SceneGraph.h"
-#include "SphereObject.h"
 
 using namespace cadutils;
 
@@ -22,13 +26,15 @@ MainWindow::MainWindow(QWidget* parent)
     buildUi();
     buildDocument();
     buildTreeModel();
-    auto* w = new OsgQtWidget(this);
-    setCentralWidget(w);
+    std::shared_ptr<IRenderView> renderView = IRenderView::createRenderView();
+    setCentralWidget(renderView->widget());
 
-    SceneGraph scene;
-    w->root()->addChild(scene.root());
-    scene.syncFromDocument(m_doc);
-
+    std::shared_ptr<GraphicsScene> grepScene = std::make_shared<GraphicsScene>();
+    MeshGenerator meshGenerator;
+    m_renderSystem = std::make_shared<RenderSystem>(grepScene , meshGenerator , renderView);
+    TessellationOptions tessellationOptions;
+    m_renderSystem->SyncFromDocument(m_doc , tessellationOptions);
+    m_renderSystem->Refresh();
 }
 
 void MainWindow::buildUi()
@@ -71,9 +77,7 @@ void MainWindow::buildUi()
 void MainWindow::buildDocument()
 {
     m_doc = std::make_shared<Document>("Document");
-    m_doc->add(std::make_shared<SphereObject>("Sphere", 50.0 ,gp_Pnt(0, 0, 0)));
-    //m_doc->add(std::make_shared<Box>());
-    //m_doc->add(std::make_shared<Sphere>());
+    m_doc->add(std::dynamic_pointer_cast<Object>(IObject::CreateSphereObject("Sphere", Point3d(0, 0, 0) ,50.0)));
 }
 
 
@@ -94,11 +98,11 @@ void MainWindow::buildTreeModel()
 
     for (const auto& obj : m_doc->GetObjects())
     {
-        QStandardItem* item = new QStandardItem(QString::fromStdString(obj.second->GetObjectName()));
+        QStandardItem* item = new QStandardItem(QString::fromStdString(obj->GetObjectName()));
         item->setEditable(false);
 
         // 保存 Object*，注意：Object 生命周期由 m_doc 管理，这里存裸指针没问题
-        item->setData(QVariant::fromValue(reinterpret_cast<quintptr>(obj.second.get())), Role_ObjectPtr);
+        item->setData(QVariant::fromValue(reinterpret_cast<quintptr>(obj.get())), Role_ObjectPtr);
         objsItem->appendRow(item);
     }
 

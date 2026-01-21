@@ -3,7 +3,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 include(ThirdParty)
-tp_add_occt()
 tp_add_osg()
 
 # 方案1：自动收集（省事）
@@ -26,6 +25,9 @@ target_compile_definitions(cadutils_application
 
 target_include_directories(cadutils_application PUBLIC
   ${CMAKE_SOURCE_DIR}/src/Data
+  ${CMAKE_SOURCE_DIR}/src/Common/Public
+  ${CMAKE_SOURCE_DIR}/src/Geometry/Public
+  ${CMAKE_SOURCE_DIR}/src/Render/Public
 )
 
 target_compile_features(cadutils_application PUBLIC cxx_std_17)
@@ -33,14 +35,14 @@ target_compile_features(cadutils_application PUBLIC cxx_std_17)
 target_link_libraries(cadutils_application PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets)
 target_link_libraries(cadutils_application PUBLIC
     cadutils_data
+	cadutils_render
+	cadutils_geometry
 )
 target_link_libraries(cadutils_application PRIVATE
-  thirdparty::occt
   thirdparty::osg
 )
 
 # 运行必需：拷 dll + data
-tp_occt_runtime(cadutils_application)
 tp_osg_runtime(cadutils_application)
 
 # VS 里按目录分组（可选）

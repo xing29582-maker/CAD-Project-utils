@@ -1,5 +1,4 @@
 #include "Object.h"
-#include <BRepPrimAPI_MakeSphere.hxx>
 
 using namespace cadutils;
 
@@ -13,7 +12,7 @@ const std::string& cadutils::Object::GetObjectName() const
 	return m_objName;
 }
 
-int64_t cadutils::Object::GetObjectId() const
+ObjectId cadutils::Object::GetObjectId() const
 {
 	return m_ObjId;
 }
