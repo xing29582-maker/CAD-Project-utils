@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NameDefine.h"
 
 #include <QOpenGLWidget>
 #include <QTimer>
@@ -8,31 +9,39 @@
 #include <osgGA/TrackballManipulator>
 #include <osg/Group>
 
-class OsgQtWidget : public QOpenGLWidget
+namespace cadutils
 {
-    Q_OBJECT
-public:
-    explicit OsgQtWidget(QWidget* parent = nullptr);
+    using UiPickCallback = std::function<void(ObjectId)>;
 
-    osg::Group* root() const { return _root.get(); }
-    osgViewer::Viewer* viewer() const { return _viewer.get(); }
+    class OsgQtWidget : public QOpenGLWidget
+    {
+        Q_OBJECT
+    public:
+        explicit OsgQtWidget(QWidget* parent = nullptr);
+        void SetUiPickCallback(UiPickCallback callFun);
 
-protected:
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
+        osg::Group* root() const { return m_root.get(); }
+        osgViewer::Viewer* viewer() const { return m_viewer.get(); }
 
-    // 输入事件
-    void mousePressEvent(QMouseEvent* e) override;
-    void mouseReleaseEvent(QMouseEvent* e) override;
-    void mouseMoveEvent(QMouseEvent* e) override;
-    void wheelEvent(QWheelEvent* e) override;
+    protected:
+        void initializeGL() override;
+        void resizeGL(int w, int h) override;
+        void paintGL() override;
 
-private:
-    osg::ref_ptr<osgViewer::Viewer> _viewer;
-    osg::ref_ptr<osg::Group> _root;
-    osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _gw;
-    QTimer _timer;
+        // 输入事件
+        void mousePressEvent(QMouseEvent* e) override;
+        void mouseReleaseEvent(QMouseEvent* e) override;
+        void mouseMoveEvent(QMouseEvent* e) override;
+        void wheelEvent(QWheelEvent* e) override;
 
-    int qtButtonToOsg(Qt::MouseButton b) const;
-};
+    private:
+        ObjectId Pick(int x, int y);
+    private:
+        osg::ref_ptr<osgViewer::Viewer> m_viewer;
+        osg::ref_ptr<osg::Group> m_root;
+        osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_gw;
+        QTimer m_timer;
+        UiPickCallback m_callBack;
+        int qtButtonToOsg(Qt::MouseButton b) const;
+    };
+}

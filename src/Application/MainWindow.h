@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AppExport.h"
+#include "NameDefine.h"
 
 #include <QMainWindow>
 
@@ -25,7 +26,6 @@ namespace cadutils
         void buildTreeModel();  // ◊Û≤‡ ˜
         void buildPropertyModel(const Object* obj); // ”“≤‡ Ù–‘
         const Object* objectFromIndex(const QModelIndex& idx) const;
-
     private slots:
         void onTreeSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
         void onTreeDoubleClicked(const QModelIndex& idx);

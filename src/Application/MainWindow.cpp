@@ -28,10 +28,17 @@ MainWindow::MainWindow(QWidget* parent)
     buildTreeModel();
     std::shared_ptr<IRenderView> renderView = IRenderView::createRenderView();
     setCentralWidget(renderView->widget());
-
     std::shared_ptr<GraphicsScene> grepScene = std::make_shared<GraphicsScene>();
     MeshGenerator meshGenerator;
     m_renderSystem = std::make_shared<RenderSystem>(grepScene , meshGenerator , renderView);
+    renderView->SetOnPicked([&](ObjectId id)
+        {
+            if (id == 0) return;
+
+            m_renderSystem->GetRenderView()->SetSelected(id);     // 视口高亮
+            //SelectTreeById(id);                  // 左侧树选中（可选）
+            //UpdatePropertyPanel(id);             // 右侧属性刷新
+        });
     TessellationOptions tessellationOptions;
     m_renderSystem->SyncFromDocument(m_doc , tessellationOptions);
     m_renderSystem->Refresh();

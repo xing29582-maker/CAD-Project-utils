@@ -41,3 +41,8 @@ void cadutils::RenderSystem::Refresh()
 {
     m_renderView->refresh(m_gscene->GetAllNodesWithId());
 }
+
+std::shared_ptr<IRenderView> cadutils::RenderSystem::GetRenderView() const
+{
+    return m_renderView;
+}

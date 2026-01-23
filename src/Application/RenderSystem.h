@@ -28,6 +28,8 @@ namespace cadutils
         std::vector<std::shared_ptr<IGraphicsNode>> GetAllGrepNodes() const;
 
         void Refresh();
+
+        std::shared_ptr<IRenderView> GetRenderView() const;
     private:
         std::shared_ptr<GraphicsScene> m_gscene;
         MeshGenerator m__mesher;
