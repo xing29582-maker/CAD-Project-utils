@@ -4,6 +4,8 @@
 #include "NameDefine.h"
 #include "OsgQtWidget.h"
 #include <osg/Group>
+#include <osg/MatrixTransform>
+
 
 namespace cadutils
 {
@@ -19,11 +21,11 @@ namespace cadutils
         virtual void SetSelected(ObjectId id) override;
 
     private:
-        void ApplySelectedState(osg::Node* node, bool selected);
+        void ApplySelectedState(osg::MatrixTransform* node, bool selected);
     private:
         std::shared_ptr<OsgQtWidget> m_widget;
         osg::ref_ptr<osg::Group> m_root;
-        std::unordered_map<ObjectId, osg::ref_ptr<osg::Node>> m_nodes; // objectId -> render node
+        std::unordered_map<ObjectId, osg::ref_ptr<osg::MatrixTransform>> m_containers; // objectId -> render node
         ObjectId m_selected;
         PickCallback m_pickCallBack;
     };

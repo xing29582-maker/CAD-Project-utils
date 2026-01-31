@@ -47,3 +47,15 @@ void cadutils::GraphicsScene::Remove(ObjectId id)
 		m_items.erase(idIter);
 	}
 }
+
+void cadutils::GraphicsScene::MarkDirty(ObjectId id)
+{
+	m_dirtyItems[id] = m_items[id];
+}
+
+std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>> cadutils::GraphicsScene::ConsumeDirtyIds()
+{
+	std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>> dirty = m_dirtyItems;
+	m_dirtyItems.clear();
+	return dirty;
+}

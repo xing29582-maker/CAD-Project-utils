@@ -23,11 +23,11 @@ namespace cadutils
 
         // 每次 doc 变化后调用，或每帧调用（先简单每帧）
         void SyncFromDocument(const std::shared_ptr<cadutils::Document>& doc,
-            const TessellationOptions& opt);
+            const TessellationOptions& opt , bool isAllBuild = true);
 
         std::vector<std::shared_ptr<IGraphicsNode>> GetAllGrepNodes() const;
 
-        void Refresh();
+        void Refresh(bool isAll = true);
 
         std::shared_ptr<IRenderView> GetRenderView() const;
     private:

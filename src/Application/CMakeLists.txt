@@ -15,7 +15,7 @@ file(GLOB_RECURSE APP_HDR CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 
-add_library(cadutils_application SHARED ${APP_SRC} ${APP_HDR})
+add_library(cadutils_application STATIC ${APP_SRC} ${APP_HDR})
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 
@@ -24,6 +24,9 @@ target_compile_definitions(cadutils_application
 )
 
 target_include_directories(cadutils_application PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/UI
+  ${CMAKE_CURRENT_SOURCE_DIR}/App
+  ${CMAKE_CURRENT_SOURCE_DIR}/Scene
   ${CMAKE_SOURCE_DIR}/src/Data
   ${CMAKE_SOURCE_DIR}/src/Common/Public
   ${CMAKE_SOURCE_DIR}/src/Geometry/Public

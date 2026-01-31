@@ -20,8 +20,10 @@ namespace cadutils
         std::vector<std::shared_ptr<IGraphicsNode>> GetItems() const;
         const std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>>& GetAllNodesWithId() const;
         void Remove(ObjectId id);
-
+        void MarkDirty(ObjectId id);
+        std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>> ConsumeDirtyIds();
     private:
+        std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>> m_dirtyItems;
         std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>> m_items;
     };
 }

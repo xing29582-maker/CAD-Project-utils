@@ -35,13 +35,13 @@ get_filename_component(_qt_bin_dir "${_qt_qmake_location}" DIRECTORY)
 
 # 你的公共 include
 target_include_directories(${TARGET_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/Application
+  ${CMAKE_CURRENT_SOURCE_DIR}/Application/UI
 )
 
 # 链接你自己的模块库
 target_link_libraries(${TARGET_NAME}
     PRIVATE
-        cadutils_application
+	cadutils_application
 )
 
 function(copy_qt_dlls target)

@@ -5,6 +5,7 @@ file(GLOB_RECURSE DATA_HDR CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "
 add_library(cadutils_data SHARED ${DATA_SRC} ${DATA_HDR})
 
 target_include_directories(cadutils_data PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/Public
   ${CMAKE_SOURCE_DIR}/src/Geometry/Public
   ${CMAKE_SOURCE_DIR}/src/Common/Public
 )
