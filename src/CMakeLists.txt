@@ -42,6 +42,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
 target_link_libraries(${TARGET_NAME}
     PRIVATE
 	cadutils_application
+	cadutils_data
 )
 
 function(copy_qt_dlls target)

@@ -10,6 +10,7 @@ namespace cadutils
 	class CADUTILS_COMMON_API Point3d
 	{
 	public:
+        Point3d();
         Point3d(double x, double y, double z);
         ~Point3d();
 

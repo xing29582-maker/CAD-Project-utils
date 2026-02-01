@@ -15,14 +15,15 @@ const std::string& cadutils::Document::name() const
 	return m_name;
 }
 
-void cadutils::Document::add(std::shared_ptr<IObject> obj)
+void cadutils::Document::add(const std::shared_ptr<IObject> &obj)
 {
 	m_objects.emplace(m_nextId, obj);
-	std::dynamic_pointer_cast<Object>(obj)->m_ObjId = m_nextId;
+	std::dynamic_pointer_cast<Object>(obj)->m_objId.set(m_nextId);
 	++m_nextId;
+	obj->OnAddedToDocument(*this);
 }
 
-const std::shared_ptr<IObject> cadutils::Document::GetobjectById(ObjectId id) const
+std::shared_ptr<IObject> cadutils::Document::GetobjectById(ObjectId id) const
 {
 	auto idIter = m_objects.find(id);
 	if (idIter != m_objects.end())
@@ -32,7 +33,7 @@ const std::shared_ptr<IObject> cadutils::Document::GetobjectById(ObjectId id) co
 	return std::shared_ptr<IObject>();
 }
 
-const std::vector<std::shared_ptr<IObject>> Document::GetObjects() const
+std::vector<std::shared_ptr<IObject>> Document::GetObjects() const
 {
 	std::vector<std::shared_ptr<IObject>> resObj;
 	for (const auto& obj : m_objects)
@@ -52,15 +53,17 @@ ObjectId cadutils::Document::GetSelected() const
 	return m_selectedId;
 }
 
-void cadutils::Document::MarkDirty(ObjectId id)
+std::vector<DirtyItem> cadutils::Document::ConsumeDirty()
 {
-	m_dirtyIds.emplace_back(id);
+	std::vector<DirtyItem> out;
+	out.reserve(m_dirty.size());
+	for (auto& [id, flags] : m_dirty) out.push_back({ id, flags });
+	m_dirty.clear();
+	return out;
 }
 
-std::vector<ObjectId> cadutils::Document::ConsumeDirtyIds()
+void cadutils::Document::OnPropertyChanged(ObjectId id,  DirtyFlags flags)
 {
-	std::vector<ObjectId> dirty = m_dirtyIds;
-	m_dirtyIds.clear();
-	return dirty;
+	m_dirty[id] = flags;
 }
 

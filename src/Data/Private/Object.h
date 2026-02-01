@@ -1,12 +1,21 @@
 #pragma once
 
 #include "IObject.h"
+#include "PropertyRegistry.h"
+#include "Property.h"
+#include "ParameterItem.h"
+#include "Document.h"
 
 namespace cadutils 
 {        
 
     class Object : public IObject
     {
+        CAD_OBJECT_BEGIN(Object);
+            CAD_PROP(std::string, objName, DirtyFlags::None)
+            CAD_PROP(ObjectId, objId,  DirtyFlags::None)
+            CAD_PROP(std::shared_ptr<IBody>, shapeBody, DirtyFlags::Geometry)
+        CAD_OBJECT_END;
     public:
         explicit Object(const std::string &name);
         virtual ~Object() noexcept = default;
@@ -17,10 +26,9 @@ namespace cadutils
         virtual bool SetParameters(ParamKey key, std::string value) override;
         virtual bool GetParameters(std::vector<ParameterItem>& params) override;
     protected:
-        std::shared_ptr<IBody> m_shapeBody;
+        void SetShapeBpdy(const std::shared_ptr<IBody>& shape);
+        std::shared_ptr<const IBody> GetShapeBody() const;
     private:
         friend class Document;
-        std::string m_objName;
-        ObjectId m_ObjId;
     };
 } // namespace cadutils

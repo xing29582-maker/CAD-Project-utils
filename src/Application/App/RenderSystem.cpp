@@ -33,14 +33,14 @@ void cadutils::RenderSystem::SyncFromDocument(const std::shared_ptr<Document>& d
     }  
     else
     {
-        for (const ObjectId& objId : doc->ConsumeDirtyIds())
+        for (const auto& objId : doc->ConsumeDirty())
         {
-            std::shared_ptr<IGraphicsNode> gnode = m_gscene->GetOrCreate(objId);  // 取出或创建一个 GraphicsNode
-            std::shared_ptr<IObject> obj = doc->GetobjectById(objId);
+            std::shared_ptr<IGraphicsNode> gnode = m_gscene->GetOrCreate(objId.id);  // 取出或创建一个 GraphicsNode
+            std::shared_ptr<IObject> obj = doc->GetobjectById(objId.id);
             std::shared_ptr<IBody> body = obj->buildShape();  // 获取几何（IBody）
             GeometryData geoData = m__mesher.Tessellate(body, opt); // 生成 GeometryData
             gnode->SetGeometryData(geoData); // 塞入 GraphicsNode
-            m_gscene->MarkDirty(objId);
+            m_gscene->MarkDirty(objId.id);
 
         }
     }

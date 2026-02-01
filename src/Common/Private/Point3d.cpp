@@ -4,6 +4,11 @@
 
 using namespace cadutils;
 
+cadutils::Point3d::Point3d()
+    :Point3d(0,0,0)
+{
+}
+
 cadutils::Point3d::Point3d(double x, double y, double z)
 	:m_x(x)
 	,m_y(y)

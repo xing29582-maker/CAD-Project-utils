@@ -15,6 +15,7 @@ enum class ParamKey : uint32_t
 
 struct ParameterItem
 {
+    ParameterItem() = default;
     ParameterItem(ParamKey key, const std::string& name, const std::string& value, bool editable)
         :Key(key)
         , Name(name)

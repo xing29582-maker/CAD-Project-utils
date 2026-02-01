@@ -7,6 +7,7 @@
 #include "MeshGenerator.h"
 #include "RenderSystem.h"
 #include "TessellationOptions.h"
+#include "ObjectFactory.h"
 
 #include <QItemSelectionModel>
 #include <QHeaderView>
@@ -97,7 +98,7 @@ void MainWindow::buildUi()
 void MainWindow::buildDocument()
 {
     m_doc = std::make_shared<Document>("Document");
-    m_doc->add(std::dynamic_pointer_cast<IObject>(IObject::CreateSphereObject("Sphere", Point3d(0, 0, 0) ,50.0)));
+    m_doc->add(ObjectFactory::CreateSphereObject("Sphere", Point3d(0, 0, 0) ,50.0));
 }
 
 
@@ -240,7 +241,6 @@ void cadutils::MainWindow::OnPropItemChanged(QStandardItem* item)
     obj->SetParameters(key, item->text().toStdString());
 
     TessellationOptions tessellationOptions;
-    m_doc->MarkDirty(objId);
     m_renderSystem->SyncFromDocument(m_doc, tessellationOptions, false);
     m_renderSystem->Refresh(false);
 }
