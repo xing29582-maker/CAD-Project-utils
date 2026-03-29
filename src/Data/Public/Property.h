@@ -2,39 +2,84 @@
 
 #include "NameDefine.h"
 #include "DirtyFlags.h"
-#include "IChangeSink.h"
+#include "IObject.h"
+#include "IPropertyChangeSink.h"
+
+#include <memory>
 
 namespace cadutils
 {
-    template<class T>
-    class Property {
+    class PropertyBase {
     public:
-        Property() = default;
+        virtual ~PropertyBase() = default;
 
-        Property(ObjectId id,  DirtyFlags flags, IChangeSink* sink, T init = {})
-            : id_(id), flags_(flags), sink_(sink), v_(std::move(init)) {
-        }
-
-        const T& get() const { return v_; }
-
-        void set(T nv) {
-            if (nv == v_) return;
-            v_ = std::move(nv);
-            if (sink_) sink_->OnPropertyChanged(id_, flags_);
-        }
-
-        // 事务/Undo 之类可能需要“静默赋值”（不触发二次记录）——先留着
-        void set_silent(T nv) { v_ = std::move(nv); }
-
-        // 对象创建后 id/sink 可能才确定，提供绑定接口
-        void Bind(ObjectId id, DirtyFlags flags, IChangeSink* sink) {
-            id_ = id; flags_ = flags; sink_ = sink;
+        PropertyId   id()    const noexcept { return m_propId; }
+        DirtyFlags  flags() const noexcept { return m_flags; }
+        virtual AnyValue Value() const = 0;
+    protected:
+        PropertyBase(PropertyId pid, DirtyFlags flags)
+            : m_propId(pid), m_flags(flags) {
         }
 
     private:
-        ObjectId id_{};
-        DirtyFlags flags_{ DirtyFlags::None };
-        IChangeSink* sink_{ nullptr };
-        T v_{};
+        PropertyId  m_propId;
+        DirtyFlags m_flags;
     };
+
+    //Property 的职责：只“发信号”，不“找对象”
+    template<class T>
+    class Property : public PropertyBase
+    {
+    public:
+        Property() = default;
+
+        // 不要在构造里塞 ObjectId / sink，这些通常是 OnAddedToDocument 才能确定
+        Property(PropertyId pid, DirtyFlags flags)
+            : PropertyBase(pid, flags)
+        {
+        }
+
+        const T& get() const { return m_value; }
+
+        void set(T nv) 
+        {
+            if (nv == m_value) return;
+
+            NotifyChanging(); // 统一入口
+            m_value = std::move(nv);
+            NotifyChanged();          
+        }
+
+        void SetValueSilent(T nv)
+        { 
+            m_value = std::move(nv);
+        }
+
+        // 绑定
+        void Bind(IObject *obj)
+        {
+            m_owner = obj;
+        }
+
+        virtual AnyValue Value() const override
+        {
+            return AnyValue();
+        }
+    protected:
+        void NotifyChanging()
+        {
+            if (m_owner)
+                m_owner->OnPropertyChanging(*this);
+        }
+        void NotifyChanged()
+        {
+            if (m_owner)
+                m_owner->OnPropertyChanged(*this);
+        }
+
+    private:
+        IObject *m_owner;         // owner object
+        T        m_value;
+    };
+
 }

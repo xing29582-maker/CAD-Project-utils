@@ -3,6 +3,11 @@
 
 using namespace cadutils;
 
+CAD_DEFAULT_CTOR(SphereObject)
+{
+
+}
+
 cadutils::SphereObject::SphereObject(const std::string& name, const Point3d& center, double radius)
 	:Object(name)
 {

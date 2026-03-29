@@ -2,6 +2,11 @@
 
 using namespace cadutils;
 
+CAD_DEFAULT_CTOR(Object)
+{
+
+}
+
 cadutils::Object::Object(const std::string& name)
 {
     m_objName.set(name);
@@ -41,6 +46,27 @@ bool cadutils::Object::GetParameters(std::vector<ParameterItem>& params)
     return true;
 }
 
+void cadutils::Object::OnPropertyChanging(PropertyBase& prop)
+{
+    if (!m_ownerDoc)
+        return;
+
+    m_ownerDoc->OnPropertyChanging(*this, prop);
+}
+
+void cadutils::Object::OnPropertyChanged(PropertyBase& prop)
+{
+    if (!m_ownerDoc)
+        return;
+
+    m_ownerDoc->OnPropertyChanged(*this, prop);
+}
+
+Document* cadutils::Object::GetOwnerDoc() const noexcept
+{
+    return m_ownerDoc;
+}
+
 void cadutils::Object::SetShapeBpdy(const std::shared_ptr<IBody>& shape)
 {
     m_shapeBody.set(shape);
@@ -49,4 +75,9 @@ void cadutils::Object::SetShapeBpdy(const std::shared_ptr<IBody>& shape)
 std::shared_ptr<const IBody> cadutils::Object::GetShapeBody() const
 {
     return m_shapeBody.get();
+}
+
+void cadutils::Object::SetOwnerDoc(Document *doc) noexcept
+{
+    m_ownerDoc = doc;
 }
