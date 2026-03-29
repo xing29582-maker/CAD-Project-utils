@@ -34,6 +34,6 @@ namespace cadutils
         virtual void SetOwnerDoc(Document* doc) noexcept;
     private:
         friend class Document;
-        Document* m_ownerDoc;
+        Document* m_ownerDoc = nullptr;
     };
 } // namespace cadutils

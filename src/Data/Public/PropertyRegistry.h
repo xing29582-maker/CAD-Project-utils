@@ -27,7 +27,7 @@ struct PropertyRegistry
 
     static std::vector<BindFn>& BindFnList()
     {
-        static std::vector<BindFn> v; // º¯ÊıÄÚ static£¬±ÜÃâ¾²Ì¬³õÊ¼»¯Ë³ĞòÎÊÌâ
+        static std::vector<BindFn> v; // å‡½æ•°å†… staticï¼Œé¿å…é™æ€åˆå§‹åŒ–é¡ºåºé—®é¢˜
         return v;
     }
 
@@ -72,7 +72,7 @@ constexpr cadutils::PropertyId fnv1a64(const char* s) noexcept
 
 constexpr cadutils::PropertyId hash_combine(cadutils::PropertyId a, cadutils::PropertyId b) noexcept
 {
-    // ÕâÊÇÒ»¸ö³£ÓÃµÄ combine£¬ÈÎÒâ¼´¿É£¬Ö»ÒªÎÈ¶¨
+    // è¿™æ˜¯ä¸€ä¸ªå¸¸ç”¨çš„ combineï¼Œä»»æ„å³å¯ï¼Œåªè¦ç¨³å®š
     return a ^ (b + 0x9e3779b97f4a7c15ull + (a << 6) + (a >> 2));
 }
 
@@ -102,7 +102,7 @@ private: \
         } \
     } \
 public: \
-    /* Ç¿ÖÆÓÃ»§±ØĞëÊµÏÖÄ¬ÈÏ¹¹Ôì */ \
+    /* å¼ºåˆ¶ç”¨æˆ·å¿…é¡»å®ç°é»˜è®¤æ„é€  */ \
     ClassName(); \
     static constexpr const char* kClassName = #ClassName; \
     static constexpr cadutils::PropertyId kTypeHash = fnv1a64(kClassName); \
@@ -144,11 +144,15 @@ private: \
     );
 
 #define CAD_OBJECT_END \
+private: \
+    struct _CadPropGuard { \
+        _CadPropGuard(ThisClass* self) { self->_cad_init_properties(); } \
+    }; \
+    _CadPropGuard _cad_guard_{ this }; \
 public:
 
 #define CAD_DEFAULT_CTOR(ClassName) \
 ClassName::ClassName() { \
-    this->_cad_init_properties(); \
     this->InitFun(); \
 } \
 const TypeMeta& ClassName::StaticTypeMeta() \

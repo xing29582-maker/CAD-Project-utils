@@ -26,14 +26,14 @@ namespace cadutils
         DirtyFlags m_flags;
     };
 
-    //Property µÄÖ°Ôğ£ºÖ»¡°·¢ĞÅºÅ¡±£¬²»¡°ÕÒ¶ÔÏó¡±
+    //Property çš„èŒè´£ï¼šåªâ€œå‘ä¿¡å·â€ï¼Œä¸â€œæ‰¾å¯¹è±¡â€
     template<class T>
     class Property : public PropertyBase
     {
     public:
         Property() = default;
 
-        // ²»ÒªÔÚ¹¹ÔìÀïÈû ObjectId / sink£¬ÕâĞ©Í¨³£ÊÇ OnAddedToDocument ²ÅÄÜÈ·¶¨
+        // ä¸è¦åœ¨æ„é€ é‡Œå¡ ObjectId / sinkï¼Œè¿™äº›é€šå¸¸æ˜¯ OnAddedToDocument æ‰èƒ½ç¡®å®š
         Property(PropertyId pid, DirtyFlags flags)
             : PropertyBase(pid, flags)
         {
@@ -45,7 +45,7 @@ namespace cadutils
         {
             if (nv == m_value) return;
 
-            NotifyChanging(); // Í³Ò»Èë¿Ú
+            NotifyChanging(); // ç»Ÿä¸€å…¥å£
             m_value = std::move(nv);
             NotifyChanged();          
         }
@@ -55,7 +55,7 @@ namespace cadutils
             m_value = std::move(nv);
         }
 
-        // °ó¶¨
+        // ç»‘å®š
         void Bind(IObject *obj)
         {
             m_owner = obj;
@@ -78,8 +78,8 @@ namespace cadutils
         }
 
     private:
-        IObject *m_owner;         // owner object
-        T        m_value;
+        IObject *m_owner = nullptr;  // owner object
+        T        m_value{};
     };
 
 }
