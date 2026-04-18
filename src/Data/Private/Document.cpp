@@ -1,4 +1,4 @@
-#include"Document.h"
+#include "Document.h"
 #include "Object.h"
 #include "TypeMeta.h"
 #include "PropertyDescriptor.h"
@@ -18,13 +18,58 @@ const std::string& cadutils::Document::name() const
 	return m_name;
 }
 
-void cadutils::Document::add(const std::shared_ptr<IObject> &obj)
+void cadutils::Document::add(const std::shared_ptr<IObject>& obj)
 {
 	m_objects.emplace(m_nextId, obj);
 	std::shared_ptr<Object> obj2 = std::dynamic_pointer_cast<Object>(obj);
 	obj2->m_objId.set(m_nextId);
 	++m_nextId;
 	obj2->SetOwnerDoc(this);
+
+	// Notify change sink (for transaction recording)
+	if (!IsReplaying() && m_changeSink)
+	{
+		m_changeSink->OnObjectAdded(obj->GetObjectId(), obj);
+	}
+}
+
+bool cadutils::Document::remove(ObjectId id)
+{
+	auto it = m_objects.find(id);
+	if (it == m_objects.end())
+		return false;
+
+	std::shared_ptr<IObject> obj = it->second;
+
+	// Notify change sink before removal
+	if (!IsReplaying() && m_changeSink)
+	{
+		m_changeSink->OnObjectRemoved(id, obj);
+	}
+
+	m_objects.erase(it);
+
+	// Clear selection if the removed object was selected
+	if (m_selectedId == id)
+		m_selectedId = 0;
+
+	return true;
+}
+
+bool cadutils::Document::restore(const std::shared_ptr<IObject>& obj)
+{
+	ObjectId id = obj->GetObjectId();
+	if (m_objects.find(id) != m_objects.end())
+		return false; // already exists
+
+	m_objects.emplace(id, obj);
+
+	// Re-bind owner doc
+	std::shared_ptr<Object> obj2 = std::dynamic_pointer_cast<Object>(obj);
+	if (obj2)
+		obj2->SetOwnerDoc(this);
+
+	return true;
 }
 
 std::shared_ptr<IObject> cadutils::Document::GetobjectById(ObjectId id) const
@@ -66,9 +111,9 @@ std::vector<DirtyItem> cadutils::Document::ConsumeDirty()
 	return out;
 }
 
-void cadutils::Document::SetCurrentTransaction(IPropertyChangeSink* transaction)
+void cadutils::Document::SetChangeSink(IPropertyChangeSink* sink)
 {
-	m_transaction = transaction;
+	m_changeSink = sink;
 }
 
 bool cadutils::Document::ApplyPropertySilent(ObjectId objId, PropertyId propId, const AnyValue& v)
@@ -86,39 +131,21 @@ bool cadutils::Document::ApplyPropertySilent(ObjectId objId, PropertyId propId, 
 		return false;
 
 	return desc->applyAny(*objI, v);
-	return false;
 }
 
-void cadutils::Document::OnObjectDirty(ObjectId id,  DirtyFlags flags)
+void cadutils::Document::OnObjectDirty(ObjectId id, DirtyFlags flags)
 {
 	m_dirty[id] = flags;
 }
 
-void Document::Undo()
-{
-	ExecStateGuard guard(*this, ExecState::Undo);
-
-	if (m_transaction)
-	{
-
-		return;
-	}
-}
-
-void Document::Redo()
-{
-	ExecStateGuard guard(*this, ExecState::Redo);
-}
-
 void cadutils::Document::OnPropertyChanging(IObject& obj, PropertyBase& prop)
 {
-	//  Undo / Redo 回放期间，禁止生成新历史
 	if (IsReplaying())
 		return;
-	// 2) 事务录制（如果当前有事务）
-	if (m_transaction)
+
+	if (m_changeSink)
 	{
-		m_transaction->OnPropertyChanging(
+		m_changeSink->OnPropertyChanging(
 			obj.GetObjectId(),
 			prop.id(),
 			prop.Value()
@@ -131,6 +158,14 @@ void cadutils::Document::OnPropertyChanged(IObject& obj, PropertyBase& prop)
 	if (IsReplaying())
 		return;
 
-	//dirty
 	OnObjectDirty(obj.GetObjectId(), prop.flags());
+
+	if (m_changeSink)
+	{
+		m_changeSink->OnPropertyChanged(
+			obj.GetObjectId(),
+			prop.id(),
+			prop.Value()
+		);
+	}
 }

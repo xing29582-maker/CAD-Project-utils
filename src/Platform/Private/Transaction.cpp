@@ -1,58 +1,51 @@
 #include "Transaction.h"
-#include "Document.h"
-#include "IObject.h"
 
 using namespace cadutils;
 
-cadutils::Transaction::Transaction(std::weak_ptr<Document> doc)
-	:m_doc(doc)
-{
-	Start();
-	m_doc.lock()->SetCurrentTransaction(this);
-}
-
-cadutils::Transaction::~Transaction() noexcept
-{
-	m_doc.lock()->SetCurrentTransaction(nullptr);
-}
-
-void cadutils::Transaction::OnPropertyChanging(cadutils::ObjectId objId, cadutils::PropertyId propId, const cadutils::AnyValue& oldValue)
+void Transaction::OnPropertyChanging(ObjectId objId, PropertyId propId, const AnyValue& oldValue)
 {
     ChangeKey key{ objId, propId };
-    auto it = m_changes.find(key);
-    if (it != m_changes.end()) 
+    auto it = m_propIndex.find(key);
+    if (it != m_propIndex.end())
     {
-        return; // 同一事务内同一属性，old 只记第一次
+        return; // same property in same transaction: keep first old value
     }
-    ChangeRec rec;
-    rec.oldValue = oldValue;
-    m_changes[key] = rec;
+
+    ChangeEntry entry;
+    entry.type = ChangeType::PropertyChange;
+    entry.objId = objId;
+    entry.propId = propId;
+    entry.oldValue = oldValue;
+
+    m_propIndex[key] = m_entries.size();
+    m_entries.push_back(std::move(entry));
 }
 
-void cadutils::Transaction::OnPropertyChanged(cadutils::ObjectId objId, cadutils::PropertyId propId, const cadutils::AnyValue& newValue)
+void Transaction::OnPropertyChanged(ObjectId objId, PropertyId propId, const AnyValue& newValue)
 {
     ChangeKey key{ objId, propId };
-    auto it = m_changes.find(key);
-    if (it == m_changes.end())
+    auto it = m_propIndex.find(key);
+    if (it == m_propIndex.end())
     {
         return;
     }
-    it->second.newValue = newValue;
+    m_entries[it->second].newValue = newValue;
 }
 
-void cadutils::Transaction::Commit()
+void Transaction::OnObjectAdded(ObjectId objId, const std::shared_ptr<IObject>& obj)
 {
+    ChangeEntry entry;
+    entry.type = ChangeType::ObjectAdd;
+    entry.objId = objId;
+    entry.object = obj;
+    m_entries.push_back(std::move(entry));
 }
 
-void cadutils::Transaction::RollBack()
+void Transaction::OnObjectRemoved(ObjectId objId, const std::shared_ptr<IObject>& obj)
 {
-    if (!m_doc.lock())
-        return;
-    // 回放期间禁止生成新历史（并且通常也不希望触发“再记录一次”）
-    Document::ExecStateGuard g(*m_doc.lock().get(), Document::ExecState::Undo);
-
-    for (const std::pair<ChangeKey, ChangeRec>& change : m_changes)
-    {
-        m_doc.lock()->ApplyPropertySilent(change.first.objId, change.first.propId, change.second.oldValue);
-    }
+    ChangeEntry entry;
+    entry.type = ChangeType::ObjectRemove;
+    entry.objId = objId;
+    entry.object = obj;
+    m_entries.push_back(std::move(entry));
 }

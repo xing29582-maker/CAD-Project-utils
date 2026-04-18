@@ -10,6 +10,9 @@ namespace cadutils
 	using PropertyId = uint64_t;
     using ObjTypeId = std::uint64_t;
 
+    // forward declaration for AnyValue support
+    class Point3d;
+
     struct AnyValue
     {
         std::string text;
@@ -32,6 +35,9 @@ namespace cadutils
             : text(std::to_string(v))
         {
         }
+
+        // Point3d constructor (defined after Point3d is complete, see below)
+        inline AnyValue(const Point3d& pt);
 
         template<typename T>
         bool Is() const
@@ -84,6 +90,9 @@ namespace cadutils
         }
     };
 
+    // Point3d Get specialization (declared here, defined after Point3d include)
+    template<> Point3d AnyValue::Get<Point3d>() const;
+
     template<typename T>
     struct AnyValueSupported : std::false_type {};
 
@@ -117,6 +126,9 @@ namespace cadutils
     template<>
     struct AnyValueSupported<double> : std::true_type {};
 
+    template<>
+    struct AnyValueSupported<Point3d> : std::true_type {};
+
     enum class PropertyValueKind : std::uint32_t
     {
         Unknown = 0,
@@ -136,50 +148,4 @@ namespace cadutils
         Property_NoUndo = 1 << 2,
         Property_NoSerialize = 1 << 3
     };
-    //using AnyValue = std::variant<
-    //    std::monostate,
-    //    bool,
-    //    int,
-    //    double,
-    //    std::string,
-    //    Point3d,
-    //    Vector3d,
-    //    Color,
-    //    Transform
-    //>;
-
-    //class AnyValue {
-    //public:
-    //    AnyValue() = default;
-
-    //    template<class T>
-    //    AnyValue(T v) : value_(std::move(v)) {}
-
-    //    template<class T>
-    //    bool is() const {
-    //        return std::holds_alternative<T>(value_);
-    //    }
-
-    //    template<class T>
-    //    const T& get() const {
-    //        return std::get<T>(value_);
-    //    }
-
-    //    template<class T>
-    //    T& get() {
-    //        return std::get<T>(value_);
-    //    }
-
-    //private:
-    //    std::variant<
-    //        std::monostate,
-    //        bool,
-    //        int,
-    //        double,
-    //        std::string,
-    //        Point3d,
-    //        Vector3d
-    //    > value_;
-    //};
-
 }

@@ -31,6 +31,7 @@ target_include_directories(cadutils_application PUBLIC
   ${CMAKE_SOURCE_DIR}/src/Common/Public
   ${CMAKE_SOURCE_DIR}/src/Geometry/Public
   ${CMAKE_SOURCE_DIR}/src/Render/Public
+  ${CMAKE_SOURCE_DIR}/src/Platform/Public
 )
 
 target_compile_features(cadutils_application PUBLIC cxx_std_17)
@@ -40,6 +41,7 @@ target_link_libraries(cadutils_application PUBLIC
     cadutils_data
 	cadutils_render
 	cadutils_geometry
+	cadutils_platform
 )
 target_link_libraries(cadutils_application PRIVATE
   thirdparty::osg

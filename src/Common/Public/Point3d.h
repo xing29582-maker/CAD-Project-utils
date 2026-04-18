@@ -2,8 +2,10 @@
 
 #include "CommonExport.h"
 #include "Vector3d.h"
+#include "NameDefine.h"
 
 #include <memory>
+#include <string>
 
 namespace cadutils
 {
@@ -22,9 +24,9 @@ namespace cadutils
         double GetY() const;
         double GetZ() const;
 
-        // ---- 运算符重载（点-向量模型） ----
+        // ---- operator overloads (point-vector model) ----
 
-        // p2 - p1 = 向量
+        // p2 - p1 = vector
         Vector3d operator-(const Point3d& rhs) const;
 
         // p + v = p'
@@ -34,7 +36,11 @@ namespace cadutils
         Point3d& operator+=(const Vector3d& v);
         Point3d& operator-=(const Vector3d& v);
 
-        // 几何等价（带容差）
+        // serialization support
+        std::string ToString() const;
+        static Point3d FromString(const std::string& s);
+
+        // geometric equality (tolerance comparison)
         bool IsEqual(const Point3d& rhs, double eps = 1e-12) const;
 
         bool operator==(const Point3d& rhs) const;
@@ -43,5 +49,19 @@ namespace cadutils
         double m_x;
         double m_y;
         double m_z;
-	};
+ };
+
+    // --- AnyValue <-> Point3d inline implementations ---
+    // (Point3d is now complete, so we can define these)
+
+    inline AnyValue::AnyValue(const Point3d& pt)
+        : text(pt.ToString())
+    {
+    }
+
+    template<>
+    inline Point3d AnyValue::Get<Point3d>() const
+    {
+        return Point3d::FromString(text);
+    }
 }

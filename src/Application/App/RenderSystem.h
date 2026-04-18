@@ -5,7 +5,7 @@
 
 #include "MeshGenerator.h"
 
-namespace cadutils 
+namespace cadutils
 {
 
     struct TessellationOptions;
@@ -15,25 +15,30 @@ namespace cadutils
     class IGraphicsNode;
     class IRenderView;
 
-    class RenderSystem 
+    class RenderSystem
     {
     public:
         RenderSystem(std::shared_ptr<GraphicsScene> gscene,
-            const MeshGenerator &mesher , std::shared_ptr<IRenderView> renderView);
+            const MeshGenerator& mesher, std::shared_ptr<IRenderView> renderView);
 
-        // 每次 doc 变化后调用，或每帧调用（先简单每帧）
+        // Sync from document: rebuild geometry for dirty or all objects
         void SyncFromDocument(const std::shared_ptr<cadutils::Document>& doc,
-            const TessellationOptions& opt , bool isAllBuild = true);
+            const TessellationOptions& opt, bool isAllBuild = true);
+
+        // Full sync: handles add, remove, and modify
+        void FullSyncFromDocument(const std::shared_ptr<cadutils::Document>& doc,
+            const TessellationOptions& opt);
 
         std::vector<std::shared_ptr<IGraphicsNode>> GetAllGrepNodes() const;
 
         void Refresh(bool isAll = true);
 
         std::shared_ptr<IRenderView> GetRenderView() const;
+
     private:
         std::shared_ptr<GraphicsScene> m_gscene;
         MeshGenerator m__mesher;
         std::shared_ptr<IRenderView> m_renderView;
     };
 
-} // namespace cadutils::scene
+} // namespace cadutils

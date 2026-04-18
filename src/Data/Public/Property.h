@@ -63,7 +63,11 @@ namespace cadutils
 
         virtual AnyValue Value() const override
         {
-            return AnyValue();
+            if constexpr (AnyValueSupported<T>::value) {
+                return AnyValue(m_value);
+            } else {
+                return AnyValue(); // unsupported types cannot participate in undo
+            }
         }
     protected:
         void NotifyChanging()

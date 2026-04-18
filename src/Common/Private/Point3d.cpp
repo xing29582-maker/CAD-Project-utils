@@ -1,6 +1,8 @@
 #include "Point3d.h"
 
-#include <cmath> 
+#include <cmath>
+#include <sstream>
+#include <stdexcept>
 
 using namespace cadutils;
 
@@ -94,6 +96,23 @@ Point3d& Point3d::operator-=(const Vector3d& v)
     m_y -= v.GetY();
     m_z -= v.GetZ();
     return *this;
+}
+
+std::string Point3d::ToString() const
+{
+    std::ostringstream oss;
+    oss << m_x << ',' << m_y << ',' << m_z;
+    return oss.str();
+}
+
+Point3d Point3d::FromString(const std::string& s)
+{
+    std::istringstream iss(s);
+    double x, y, z;
+    char sep1, sep2;
+    if (!(iss >> x >> sep1 >> y >> sep2 >> z) || sep1 != ',' || sep2 != ',')
+        throw std::runtime_error("Point3d::FromString failed: \"" + s + "\"");
+    return Point3d(x, y, z);
 }
 
 bool Point3d::IsEqual(const Point3d& rhs, double eps) const
