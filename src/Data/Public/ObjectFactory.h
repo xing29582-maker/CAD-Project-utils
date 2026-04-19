@@ -13,5 +13,7 @@ namespace cadutils
 	{
 		public:
 			static std::shared_ptr<IObject> CreateSphereObject(const std::string& name, const Point3d& center, double radius);
+			static std::shared_ptr<IObject> CreateBoxObject(const std::string& name, const Point3d& center, double length, double width, double height);
+			static std::shared_ptr<IObject> CreateCylinderObject(const std::string& name, const Point3d& center, double radius, double height);
 	};
 }

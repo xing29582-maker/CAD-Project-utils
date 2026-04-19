@@ -33,6 +33,8 @@ namespace cadutils
         std::shared_ptr<TransactionManager> GetTransactionManager() const { return m_txMgr; }
         RenderSystem* GetRenderSystem() const { return m_renderSystem.get(); }
         int& SphereCounter() { return m_sphereCounter; }
+        int& BoxCounter() { return m_boxCounter; }
+        int& CylinderCounter() { return m_cylinderCounter; }
 
     private:
         void buildUi();
@@ -68,6 +70,8 @@ namespace cadutils
         bool m_updatingProps = false;
         bool m_updatingTree = false;
         int m_sphereCounter = 1;
+        int m_boxCounter = 1;
+        int m_cylinderCounter = 1;
     };
 
 } // namespace cadutils

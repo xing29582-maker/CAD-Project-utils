@@ -6,6 +6,9 @@
             <Item command="cmd.redo"            shortcut="Ctrl+Y" />
             <Separator/>
             <Item command="cmd.add_sphere" />
+            <Item command="cmd.add_box" />
+            <Item command="cmd.add_cylinder" />
+            <Separator/>
             <Item command="cmd.delete_selected" shortcut="Delete" />
         </Menu>
     </MenuBar>
@@ -16,6 +19,9 @@
             <Item command="cmd.redo" />
             <Separator/>
             <Item command="cmd.add_sphere" />
+            <Item command="cmd.add_box" />
+            <Item command="cmd.add_cylinder" />
+            <Separator/>
             <Item command="cmd.delete_selected" />
         </ToolBar>
     </ToolBars>

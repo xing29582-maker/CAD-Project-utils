@@ -11,6 +11,9 @@ enum class ParamKey : uint32_t
     CenterX,
     CenterY,
     CenterZ,
+    Length,
+    Width,
+    Height,
 };
 
 struct ParameterItem
@@ -24,8 +27,8 @@ struct ParameterItem
     {
 
     }
-    ParamKey    Key;     // ÊôÐÔ±êÊ¶£¨Ã¶¾Ù»ò int£©
-    std::string Name;       // UI ÏÔÊ¾Ãû£º"Radius"
-    std::string Value;      // ÎÄ±¾Öµ£º"50"
-    bool        Editable;   // UI ÊÇ·ñÔÊÐí±à¼­
+    ParamKey    Key;     // ï¿½ï¿½ï¿½Ô±ï¿½Ê¶ï¿½ï¿½Ã¶ï¿½Ù»ï¿½ intï¿½ï¿½
+    std::string Name;       // UI ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½"Radius"
+    std::string Value;      // ï¿½Ä±ï¿½Öµï¿½ï¿½"50"
+    bool        Editable;   // UI ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à¼­
 };
