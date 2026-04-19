@@ -36,13 +36,14 @@ get_filename_component(_qt_bin_dir "${_qt_qmake_location}" DIRECTORY)
 # 你的公共 include
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/Application/UI
+  ${CMAKE_CURRENT_SOURCE_DIR}/Application/Commands
 )
 
 # 链接你自己的模块库
 target_link_libraries(${TARGET_NAME}
     PRIVATE
-	cadutils_application
-	cadutils_data
+    cadutils_application
+    cadutils_data
 )
 
 function(copy_qt_dlls target)
@@ -69,6 +70,14 @@ function(copy_qt_dlls target)
 endfunction()
 
 copy_qt_dlls(${TARGET_NAME})
+
+# Copy config files to output directory
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${TARGET_NAME}>/config"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/config/ui_layout.xml"
+        "$<TARGET_FILE_DIR:${TARGET_NAME}>/config/ui_layout.xml"
+)
 
 # Qt（如果开启）
 if(USE_QT)

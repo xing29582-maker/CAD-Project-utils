@@ -28,7 +28,7 @@ namespace cadutils
         void resizeGL(int w, int h) override;
         void paintGL() override;
 
-        // ÊäÈëÊÂ¼ş
+        // è¾“å…¥äº‹ä»¶
         void mousePressEvent(QMouseEvent* e) override;
         void mouseReleaseEvent(QMouseEvent* e) override;
         void mouseMoveEvent(QMouseEvent* e) override;

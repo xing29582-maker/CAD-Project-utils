@@ -16,7 +16,7 @@ namespace cadutils
         RenderView();
 
         QWidget* widget() override { return m_widget.get(); }
-        virtual void refresh(const std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>>& gRepNodes) override;
+        virtual void refresh(const std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>>& gRepNodes, bool fullSync = false) override;
         virtual void SetOnPicked(PickCallback cb) override;
         virtual void SetSelected(ObjectId id) override;
 

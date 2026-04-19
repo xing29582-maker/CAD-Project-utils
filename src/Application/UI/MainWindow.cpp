@@ -9,6 +9,8 @@
 #include "TessellationOptions.h"
 #include "ObjectFactory.h"
 #include "TransactionManager.h"
+#include "CommandRegistry.h"
+#include "CommandUIBuilder.h"
 
 #include <QItemSelectionModel>
 #include <QHeaderView>
@@ -19,7 +21,8 @@
 #include <QAction>
 #include <QMenuBar>
 #include <QToolBar>
-#include <QKeySequence>
+#include <QFile>
+#include <QCoreApplication>
 
 using namespace cadutils;
 using namespace std;
@@ -33,6 +36,7 @@ namespace
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , m_updatingProps(false)
+    , m_updatingTree(false)
     , m_sphereCounter(1)
 {
     buildUi();
@@ -48,13 +52,49 @@ MainWindow::MainWindow(QWidget* parent)
     m_renderSystem = std::make_shared<RenderSystem>(grepScene, meshGenerator, renderView);
     renderView->SetOnPicked([&](ObjectId id)
         {
-            m_renderSystem->GetRenderView()->SetSelected(id);
             m_doc->SetSelected(id);
+            m_renderSystem->GetRenderView()->SetSelected(id);
+            SelectInTree(id);
             UpdateProperties(id);
         });
     TessellationOptions tessellationOptions;
     m_renderSystem->SyncFromDocument(m_doc, tessellationOptions);
     m_renderSystem->Refresh();
+
+    // Build command-driven UI from XML config
+    auto ctx = std::make_shared<CommandContext>();
+    ctx->doc = m_doc;
+    ctx->txMgr = m_txMgr;
+    ctx->renderSystem = m_renderSystem.get();
+    ctx->mainWindow = this;
+
+    // Try multiple paths to locate ui_layout.xml
+    QStringList searchPaths;
+    searchPaths << QCoreApplication::applicationDirPath() + "/config/ui_layout.xml";
+    searchPaths << QCoreApplication::applicationDirPath() + "/../config/ui_layout.xml";
+    searchPaths << QCoreApplication::applicationDirPath() + "/../../config/ui_layout.xml";
+    searchPaths << QCoreApplication::applicationDirPath() + "/../../../config/ui_layout.xml";
+
+    bool loaded = false;
+    for (const auto& path : searchPaths)
+    {
+        if (QFile::exists(path))
+        {
+            loaded = CommandUIBuilder::BuildFromXml(path, this, CommandRegistry::Instance(), ctx);
+            if (loaded)
+            {
+                qDebug() << "Loaded UI layout from:" << path;
+                break;
+            }
+        }
+    }
+
+    if (!loaded)
+    {
+        qWarning() << "Could not find ui_layout.xml in any search path, building fallback UI";
+        // Fallback: build minimal menu manually
+        CommandUIBuilder::BuildFallback(this, CommandRegistry::Instance(), ctx);
+    }
 }
 
 void MainWindow::buildUi()
@@ -62,9 +102,8 @@ void MainWindow::buildUi()
     setWindowTitle("CAD Demo");
     resize(1200, 800);
 
-    m_viewport = new QWidget(this);
-    m_viewport->setMinimumWidth(600);
-    setCentralWidget(m_viewport);
+    // Central widget will be set later by the render view
+    // (setCentralWidget is called in the constructor after buildUi)
 
     // Left dock: Document Tree
     QDockWidget* leftDock = new QDockWidget("Document", this);
@@ -99,46 +138,13 @@ void MainWindow::buildUi()
     connect(m_propModel, &QStandardItemModel::itemChanged,
         this, &MainWindow::OnPropItemChanged);
 
-    // --- Actions ---
-
-    // Undo / Redo
-    m_undoAction = new QAction("Undo", this);
-    m_undoAction->setShortcut(QKeySequence::Undo);
-    connect(m_undoAction, &QAction::triggered, this, &MainWindow::OnUndo);
-
-    m_redoAction = new QAction("Redo", this);
-    m_redoAction->setShortcut(QKeySequence::Redo);
-    connect(m_redoAction, &QAction::triggered, this, &MainWindow::OnRedo);
-
-    // Add / Delete
-    m_addSphereAction = new QAction("Add Sphere", this);
-    connect(m_addSphereAction, &QAction::triggered, this, &MainWindow::OnAddSphere);
-
-    m_deleteAction = new QAction("Delete", this);
-    m_deleteAction->setShortcut(QKeySequence::Delete);
-    connect(m_deleteAction, &QAction::triggered, this, &MainWindow::OnDeleteSelected);
-
-    // Menu bar
-    QMenu* editMenu = menuBar()->addMenu("Edit");
-    editMenu->addAction(m_undoAction);
-    editMenu->addAction(m_redoAction);
-    editMenu->addSeparator();
-    editMenu->addAction(m_addSphereAction);
-    editMenu->addAction(m_deleteAction);
-
-    // Toolbar
-    QToolBar* toolbar = addToolBar("Edit");
-    toolbar->addAction(m_undoAction);
-    toolbar->addAction(m_redoAction);
-    toolbar->addSeparator();
-    toolbar->addAction(m_addSphereAction);
-    toolbar->addAction(m_deleteAction);
+    // Note: Menus and toolbars are now built by CommandUIBuilder
 }
 
 void MainWindow::buildDocument()
 {
     m_doc = std::make_shared<Document>("Document");
-    m_doc->add(ObjectFactory::CreateSphereObject("Sphere", Point3d(0, 0, 0), 50.0));
+    // Start with an empty document — user creates objects via commands
 }
 
 void MainWindow::buildTreeModel()
@@ -159,6 +165,7 @@ void MainWindow::buildTreeModel()
         QStandardItem* item = new QStandardItem(QString::fromStdString(obj->GetObjectName()));
         item->setEditable(false);
         item->setData(QVariant::fromValue(reinterpret_cast<quintptr>(obj.get())), Role_ObjectPtr);
+        item->setData(QVariant::fromValue<qulonglong>(static_cast<qulonglong>(obj->GetObjectId())), Role_ObjectId);
         objsItem->appendRow(item);
     }
 
@@ -175,7 +182,6 @@ void MainWindow::buildTreeModel()
 
 void MainWindow::rebuildTreeModel()
 {
-    // Disconnect old selection model signals
     if (m_docTreeView->selectionModel())
     {
         disconnect(m_docTreeView->selectionModel(), nullptr, this, nullptr);
@@ -198,15 +204,16 @@ const IObject* MainWindow::objectFromIndex(const QModelIndex& idx) const
     return ptr;
 }
 
-void cadutils::MainWindow::UpdateProperties(ObjectId id)
+void MainWindow::UpdateProperties(ObjectId id)
 {
+    m_updatingProps = true;
     m_propModel->setRowCount(0);
 
-    if (id == 0) return;
+    if (id == 0) { m_updatingProps = false; return; }
 
     std::weak_ptr<IObject> wobj = m_doc->GetobjectById(id);
     std::shared_ptr<IObject> obj = wobj.lock();
-    if (!obj) return;
+    if (!obj) { m_updatingProps = false; return; }
 
     std::vector<ParameterItem> params;
     obj->GetParameters(params);
@@ -215,9 +222,23 @@ void cadutils::MainWindow::UpdateProperties(ObjectId id)
     {
         SetPropRow(row++, param.Name.c_str(), param.Value.c_str(), id, param.Key, param.Editable);
     }
+    m_updatingProps = false;
 }
 
-void cadutils::MainWindow::SetPropRow(int row, const QString& name, const QString& value
+void MainWindow::UpdatePropertiesById(ObjectId id)
+{
+    if (id == 0)
+        m_propModel->setRowCount(0);
+    else
+        UpdateProperties(id);
+}
+
+void MainWindow::RebuildAfterCommand()
+{
+    rebuildTreeModel();
+}
+
+void MainWindow::SetPropRow(int row, const QString& name, const QString& value
     , ObjectId objId, ParamKey key, bool editable)
 {
     m_propModel->insertRow(row);
@@ -244,8 +265,30 @@ void MainWindow::buildPropertyModel(const IObject* obj)
 
 void MainWindow::onTreeSelectionChanged(const QModelIndex& current, const QModelIndex&)
 {
-    const auto* obj = objectFromIndex(current);
-    buildPropertyModel(obj);
+    if (m_updatingTree) return;
+
+    if (!current.isValid())
+    {
+        m_doc->SetSelected(0);
+        m_renderSystem->GetRenderView()->SetSelected(0);
+        UpdateProperties(0);
+        return;
+    }
+
+    auto idVar = current.data(Role_ObjectId);
+    if (!idVar.isValid())
+    {
+        // Clicked on a non-object node (e.g. "Document" or "Objects")
+        m_doc->SetSelected(0);
+        m_renderSystem->GetRenderView()->SetSelected(0);
+        UpdateProperties(0);
+        return;
+    }
+
+    ObjectId id = static_cast<ObjectId>(idVar.toULongLong());
+    m_doc->SetSelected(id);
+    m_renderSystem->GetRenderView()->SetSelected(id);
+    UpdateProperties(id);
 }
 
 void MainWindow::onTreeDoubleClicked(const QModelIndex& idx)
@@ -256,7 +299,7 @@ void MainWindow::onTreeDoubleClicked(const QModelIndex& idx)
     }
 }
 
-void cadutils::MainWindow::OnPropItemChanged(QStandardItem* item)
+void MainWindow::OnPropItemChanged(QStandardItem* item)
 {
     if (m_updatingProps) return;
     if (!item) return;
@@ -279,85 +322,47 @@ void cadutils::MainWindow::OnPropItemChanged(QStandardItem* item)
     SyncAndRefresh(false);
 }
 
-void cadutils::MainWindow::OnUndo()
+void MainWindow::SelectInTree(ObjectId id)
 {
-    if (!m_txMgr->CanUndo())
+    if (!m_docTreeModel || !m_docTreeView) return;
+
+    m_updatingTree = true;
+
+    if (id == 0)
+    {
+        m_docTreeView->clearSelection();
+        m_updatingTree = false;
         return;
+    }
 
-    m_txMgr->Undo();
+    // Search through the "Objects" node children for matching ObjectId
+    QStandardItem* root = m_docTreeModel->invisibleRootItem();
+    if (root->rowCount() == 0) { m_updatingTree = false; return; }
 
-    // Full sync needed because undo may add/remove objects
-    TessellationOptions opt;
-    m_renderSystem->FullSyncFromDocument(m_doc, opt);
-    m_renderSystem->Refresh(true);
+    QStandardItem* docItem = root->child(0);
+    if (!docItem || docItem->rowCount() == 0) { m_updatingTree = false; return; }
 
-    rebuildTreeModel();
+    QStandardItem* objsItem = docItem->child(0);
+    if (!objsItem) { m_updatingTree = false; return; }
 
-    ObjectId selId = m_doc->GetSelected();
-    if (selId != 0)
-        UpdateProperties(selId);
-    else
-        m_propModel->setRowCount(0);
+    for (int i = 0; i < objsItem->rowCount(); ++i)
+    {
+        QStandardItem* item = objsItem->child(i);
+        auto idVar = item->data(Role_ObjectId);
+        if (idVar.isValid() && static_cast<ObjectId>(idVar.toULongLong()) == id)
+        {
+            m_docTreeView->setCurrentIndex(item->index());
+            m_updatingTree = false;
+            return;
+        }
+    }
+
+    // Not found — clear selection
+    m_docTreeView->clearSelection();
+    m_updatingTree = false;
 }
 
-void cadutils::MainWindow::OnRedo()
-{
-    if (!m_txMgr->CanRedo())
-        return;
-
-    m_txMgr->Redo();
-
-    TessellationOptions opt;
-    m_renderSystem->FullSyncFromDocument(m_doc, opt);
-    m_renderSystem->Refresh(true);
-
-    rebuildTreeModel();
-
-    ObjectId selId = m_doc->GetSelected();
-    if (selId != 0)
-        UpdateProperties(selId);
-    else
-        m_propModel->setRowCount(0);
-}
-
-void cadutils::MainWindow::OnAddSphere()
-{
-    QString name = QString("Sphere_%1").arg(m_sphereCounter++);
-    auto newObj = ObjectFactory::CreateSphereObject(
-        name.toStdString(), Point3d(0, 0, 0), 50.0);
-
-    m_txMgr->BeginTransaction();
-    m_doc->add(newObj);
-    m_txMgr->Commit();
-
-    TessellationOptions opt;
-    m_renderSystem->FullSyncFromDocument(m_doc, opt);
-    m_renderSystem->Refresh(true);
-
-    rebuildTreeModel();
-}
-
-void cadutils::MainWindow::OnDeleteSelected()
-{
-    ObjectId selId = m_doc->GetSelected();
-    if (selId == 0)
-        return;
-
-    m_txMgr->BeginTransaction();
-    m_doc->remove(selId);
-    m_txMgr->Commit();
-
-    m_doc->SetSelected(0);
-    m_propModel->setRowCount(0);
-
-    TessellationOptions opt;
-    m_renderSystem->FullSyncFromDocument(m_doc, opt);
-    m_renderSystem->Refresh(true);
-
-    rebuildTreeModel();
-}
-
-void cadutils::MainWindow::SyncAndRefresh(bool isAll)
+void MainWindow::SyncAndRefresh(bool isAll)
 {
     TessellationOptions tessellationOptions;
     m_renderSystem->SyncFromDocument(m_doc, tessellationOptions, isAll);

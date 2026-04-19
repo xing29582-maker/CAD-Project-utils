@@ -18,8 +18,8 @@ namespace cadutils
     public:
         virtual ~IRenderView() = default;
         virtual QWidget* widget() = 0;
-        // APP Ö»Ëµ¡°ÄÚÈÝ±äÁË¡±£¬¾ßÌåÔõÃ´ sync ÓÉ Render ¾ö¶¨
-        virtual void refresh(const std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>>& gRepNodes) = 0;
+        // APP Ö»Ëµï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½Ë¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ sync ï¿½ï¿½ Render ï¿½ï¿½ï¿½ï¿½
+        virtual void refresh(const std::unordered_map<ObjectId, std::shared_ptr<IGraphicsNode>>& gRepNodes, bool fullSync = false) = 0;
         virtual void SetOnPicked(PickCallback cb) = 0;
         virtual void SetSelected(ObjectId id) = 0;
         CADUTILS_RENDER_API static std::shared_ptr<IRenderView> createRenderView();

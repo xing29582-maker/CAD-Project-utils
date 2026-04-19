@@ -89,11 +89,11 @@ void cadutils::RenderSystem::Refresh(bool isAll)
 {
     if (isAll)
     {
-        m_renderView->refresh(m_gscene->GetAllNodesWithId());
+        m_renderView->refresh(m_gscene->GetAllNodesWithId(), true);
     }
     else
     {
-        m_renderView->refresh(m_gscene->ConsumeDirtyIds());
+        m_renderView->refresh(m_gscene->ConsumeDirtyIds(), false);
     }
 }
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UILayout>
+    <MenuBar>
+        <Menu name="Edit">
+            <Item command="cmd.undo"            shortcut="Ctrl+Z" />
+            <Item command="cmd.redo"            shortcut="Ctrl+Y" />
+            <Separator/>
+            <Item command="cmd.add_sphere" />
+            <Item command="cmd.delete_selected" shortcut="Delete" />
+        </Menu>
+    </MenuBar>
+
+    <ToolBars>
+        <ToolBar name="Main">
+            <Item command="cmd.undo" />
+            <Item command="cmd.redo" />
+            <Separator/>
+            <Item command="cmd.add_sphere" />
+            <Item command="cmd.delete_selected" />
+        </ToolBar>
+    </ToolBars>
+</UILayout>

@@ -31,14 +31,17 @@ void OsgQtWidget::initializeGL()
     m_viewer->setSceneData(m_root.get());
     m_viewer->setCameraManipulator(new osgGA::TrackballManipulator());
 
+    // Ensure default headlight is enabled for basic lighting
+    m_viewer->setLightingMode(osg::View::HEADLIGHT);
+
     m_gw = new osgViewer::GraphicsWindowEmbedded(0, 0, width(), height());
     osg::Camera* cam = m_viewer->getCamera();
     cam->setGraphicsContext(m_gw.get());
     cam->setViewport(new osg::Viewport(0, 0, width(), height()));
     cam->setProjectionMatrixAsPerspective(45.0, double(width()) / double(height()), 0.1, 10000.0);
     cam->setClearColor(osg::Vec4(1.f, 1.f, 1.f, 1.f));
-    // 常用：开启光照（你也可以后面做材质/StateSet统一管理）
     cam->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+    cam->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
 }
 
 void OsgQtWidget::resizeGL(int w, int h)
@@ -93,8 +96,8 @@ void OsgQtWidget::wheelEvent(QWheelEvent* e)
 
 ObjectId OsgQtWidget::Pick(int x, int y)
 {
-    if (!m_viewer) 
-        return ObjectId(-1);
+    if (!m_viewer)
+        return 0;
 
     osg::Camera* cam = m_viewer->getCamera();
     osg::ref_ptr<osgUtil::LineSegmentIntersector> inter =
@@ -104,11 +107,10 @@ ObjectId OsgQtWidget::Pick(int x, int y)
     cam->accept(iv);
 
     if (!inter->containsIntersections())
-        return ObjectId(-1);
+        return 0;
 
     const auto& hit = *inter->getIntersections().begin();
 
-    // 从 nodePath 从下往上找绑的 ObjectId
     for (auto it = hit.nodePath.rbegin(); it != hit.nodePath.rend(); ++it)
     {
         osg::Node* n = *it;
@@ -116,5 +118,5 @@ ObjectId OsgQtWidget::Pick(int x, int y)
         if (n->getUserValue("ObjectId", id))
             return static_cast<ObjectId>(id);
     }
-    return ObjectId(-1);
+    return 0;
 }
