@@ -198,3 +198,10 @@ void TransactionManager::ApplyTransaction(const Transaction& tx, bool useOldValu
         }
     }
 }
+
+void TransactionManager::Clear()
+{
+    m_active.reset();
+    m_undoStack.clear();
+    m_redoStack.clear();
+}

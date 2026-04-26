@@ -21,6 +21,7 @@ struct PropertyRegistry
         cadutils::PropertyId id;
         uint32_t flags;
         size_t offset;
+        bool serializable;  // 新增：是否参与序列化
         BindFn bindFn;
         ApplyAnyFn applyAny;
     };
@@ -43,6 +44,7 @@ struct PropertyRegistry
             cadutils::PropertyId inId,
             uint32_t inFlags,
             size_t inOffset,
+            bool inSerializable,  // 新增参数
             BindFn inBindFn,
             ApplyAnyFn inApplyAny)
         {
@@ -52,6 +54,7 @@ struct PropertyRegistry
                 inId,
                 inFlags,
                 inOffset,
+                inSerializable,  // 新增字段
                 inBindFn,
                 inApplyAny
                 });
@@ -139,6 +142,38 @@ private: \
         CAD_PROP_ID(name), \
         static_cast<uint32_t>(flags), \
         _cad_offset_##name(), \
+        true, /* serializable = true */ \
+        & _cad_bind_##name, \
+        & _cad_apply_##name \
+    );
+
+#define CAD_PROP_TRANSIENT(T, name, flags) \
+private: \
+    Property<T> m_##name{ CAD_PROP_ID(name), (flags) }; \
+    static void _cad_bind_##name(ThisClass& self) { \
+        self.m_##name.Bind(&self); \
+    } \
+    static bool _cad_apply_##name(IObject& obj, const cadutils::AnyValue& v) { \
+        auto* p = dynamic_cast<ThisClass*>(&obj); \
+        if (!p) return false; \
+        if constexpr (!AnyValueSupported<T>::value) { \
+            return false; \
+        } else { \
+            if (!v.Is<T>()) return false; \
+            p->m_##name.SetValueSilent(v.Get<T>()); \
+            return true; \
+        } \
+    }\
+    static constexpr size_t _cad_offset_##name() { \
+        return offsetof(ThisClass, m_##name); \
+    } \
+    using _cad_reg_type_##name = typename PropertyRegistry<ThisClass>::Registrar; \
+    inline static _cad_reg_type_##name _cad_reg_##name = _cad_reg_type_##name(\
+        #name, \
+        CAD_PROP_ID(name), \
+        static_cast<uint32_t>(flags), \
+        _cad_offset_##name(), \
+        false, /* serializable = false */ \
         & _cad_bind_##name, \
         & _cad_apply_##name \
     );
@@ -161,9 +196,12 @@ const TypeMeta& ClassName::StaticTypeMeta() \
         TypeMeta m; \
         m.typeId = ClassName::kTypeHash; \
         m.typeName = ClassName::kClassName; \
+        m.creator = []() -> std::shared_ptr<IObject> { \
+            return std::make_shared<ClassName>(); \
+        }; \
         for (const auto& e : PropertyRegistry<ClassName>::EntryList()) { \
             m.properties.push_back(PropertyDescriptor( \
-                e.id, e.name, e.flags, e.offset, e.applyAny \
+                e.id, e.name, e.flags, e.offset, e.serializable, e.applyAny \
             )); \
         } \
         m.BuildIndices(); \

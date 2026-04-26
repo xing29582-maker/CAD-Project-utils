@@ -5,7 +5,11 @@ using namespace cadutils;
 
 CAD_DEFAULT_CTOR(BoxObject)
 {
-
+    // Initialize with default values for deserialization
+    m_center.SetValueSilent(Point3d(0, 0, 0));
+    m_length.SetValueSilent(1.0);
+    m_width.SetValueSilent(1.0);
+    m_height.SetValueSilent(1.0);
 }
 
 BoxObject::BoxObject(const std::string& name, const Point3d& center,

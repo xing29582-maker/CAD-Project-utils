@@ -83,8 +83,8 @@ void cadutils::RenderView::refresh(const std::unordered_map<ObjectId, std::share
             container->addChild(osgNode.get());
     }
 
-    // Auto-fit camera when new nodes are added
-    if (hasNewNodes && m_widget && m_widget->viewer())
+    // Auto-fit camera when new nodes are added or during full sync
+    if ((hasNewNodes || fullSync) && m_widget && m_widget->viewer())
     {
         m_widget->viewer()->home();
     }

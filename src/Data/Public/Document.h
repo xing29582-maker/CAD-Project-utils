@@ -26,10 +26,15 @@ namespace cadutils
 
         // Object management
         void add(const std::shared_ptr<IObject>& obj);
+        void addWithId(const std::shared_ptr<IObject>& obj, ObjectId id);  // 新增：用于加载时恢复对象 ID
         bool remove(ObjectId id);
         bool restore(const std::shared_ptr<IObject>& obj);
         std::shared_ptr<IObject> GetobjectById(ObjectId id) const;
         std::vector<std::shared_ptr<IObject>> GetObjects() const;
+
+        // Persistence
+        bool SaveToFile(const std::string& path) const;
+        bool LoadFromFile(const std::string& path);
 
         void SetSelected(ObjectId id);
         ObjectId GetSelected() const;
@@ -48,6 +53,10 @@ namespace cadutils
 
         void OnPropertyChanging(IObject& obj, PropertyBase& prop);
         void OnPropertyChanged(IObject& obj, PropertyBase& prop);
+
+        // ID management (for deserialization)
+        void setNextId(ObjectId id) { m_nextId = id; }
+        ObjectId getNextId() const { return m_nextId; }
 
     public:
         void OnObjectDirty(ObjectId id, DirtyFlags flags) override;

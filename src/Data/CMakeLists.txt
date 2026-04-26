@@ -8,6 +8,7 @@ target_include_directories(cadutils_data PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/Public
   ${CMAKE_SOURCE_DIR}/src/Geometry/Public
   ${CMAKE_SOURCE_DIR}/src/Common/Public
+  ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json/include
 )
 
 target_link_libraries(cadutils_data PRIVATE

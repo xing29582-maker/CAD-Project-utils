@@ -6,12 +6,20 @@
 
 #include<vector>
 #include<unordered_map>
+#include<functional>
+#include<memory>
+
 namespace cadutils
 {
+    class IObject;
+
     struct TypeMeta
     {
         ObjTypeId typeId = 0;
         const char* typeName = nullptr;
+
+        // 新增：对象创建函数
+        std::function<std::shared_ptr<IObject>()> creator;
 
         std::vector<PropertyDescriptor> properties;
 

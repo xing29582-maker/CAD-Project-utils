@@ -9,11 +9,11 @@ namespace cadutils
 
     //struct PropertyDescriptor
     //{
-    //    cadutils::PropertyId id;          // propertyÎÈ¶¨ID
-    //    const char* name;       // UI/µ÷ÊÔ/ĞòÁĞ»¯
-    //    size_t offset;          // ³ÉÔ±Æ«ÒÆ
-    //    //ValueType type;         // Êı¾İÀàĞÍ,todo
-    //    //uint32_t flags;         // ¿ÉÑ¡£ºreadonly / transient / animatable ,todo
+    //    cadutils::PropertyId id;          // propertyï¿½È¶ï¿½ID
+    //    const char* name;       // UI/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½Ğ»ï¿½
+    //    size_t offset;          // ï¿½ï¿½Ô±Æ«ï¿½ï¿½
+    //    //ValueType type;         // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,todo
+    //    //uint32_t flags;         // ï¿½ï¿½Ñ¡ï¿½ï¿½readonly / transient / animatable ,todo
 
     //    bool (*applyAny)(IObject& obj, const AnyValue& v) = nullptr;
     //    bool (*readAny)(const IObject& obj, AnyValue& out) = nullptr;
@@ -25,6 +25,7 @@ namespace cadutils
         const char* name = nullptr;
         uint32_t flags = 0;
         size_t offset = 0;
+        bool serializable = true;  // æ–°å¢ï¼šæ˜¯å¦å‚ä¸åºåˆ—åŒ–ï¼Œé»˜è®¤ä¸º true
         bool (*applyAny)(IObject&, const AnyValue&) = nullptr;
         bool (*readAny)(const IObject& obj, AnyValue& out) = nullptr;
 
@@ -34,11 +35,13 @@ namespace cadutils
             const char* inName,
             uint32_t inFlags,
             size_t inOffset,
+            bool inSerializable,
             bool (*inApplyAny)(IObject&, const AnyValue&))
             : id(inId)
             , name(inName)
             , flags(inFlags)
             , offset(inOffset)
+            , serializable(inSerializable)
             , applyAny(inApplyAny)
         {
         }

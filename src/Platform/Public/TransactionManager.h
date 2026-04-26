@@ -37,6 +37,9 @@ namespace cadutils
         bool CanRedo() const noexcept { return !m_redoStack.empty(); }
         bool HasActiveTransaction() const noexcept { return m_active != nullptr; }
 
+        // Clear all transaction stacks (used after loading a document)
+        void Clear();
+
     private:
         // Apply changes from a transaction (used by Undo/Redo)
         // If useOldValues is true, applies oldValue (undo); otherwise applies newValue (redo).

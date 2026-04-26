@@ -2,6 +2,8 @@
 #include "Object.h"
 #include "TypeMeta.h"
 #include "PropertyDescriptor.h"
+#include "JsonSerializer.h"
+#include <fstream>
 
 using namespace cadutils;
 using namespace std;
@@ -31,6 +33,25 @@ void cadutils::Document::add(const std::shared_ptr<IObject>& obj)
 	{
 		m_changeSink->OnObjectAdded(obj->GetObjectId(), obj);
 	}
+}
+
+void cadutils::Document::addWithId(const std::shared_ptr<IObject>& obj, ObjectId id)
+{
+	m_objects.emplace(id, obj);
+	std::shared_ptr<Object> obj2 = std::dynamic_pointer_cast<Object>(obj);
+	if (obj2)
+	{
+		obj2->m_objId.SetValueSilent(id);
+		obj2->SetOwnerDoc(this);
+	}
+
+	// Update next ID if necessary
+	if (id >= m_nextId)
+	{
+		m_nextId = id + 1;
+	}
+
+	// Note: No change sink notification during deserialization
 }
 
 bool cadutils::Document::remove(ObjectId id)
@@ -150,6 +171,51 @@ void cadutils::Document::OnPropertyChanging(IObject& obj, PropertyBase& prop)
 			prop.id(),
 			prop.Value()
 		);
+	}
+}
+
+bool cadutils::Document::SaveToFile(const std::string& path) const
+{
+	try
+	{
+		nlohmann::json j = JsonSerializer::SerializeDocument(*this);
+		std::ofstream file(path);
+		if (!file.is_open())
+			return false;
+
+		file << j.dump(2);  // Pretty print with 2-space indent
+		file.close();
+		return true;
+	}
+	catch (...)
+	{
+		return false;
+	}
+}
+
+bool cadutils::Document::LoadFromFile(const std::string& path)
+{
+	try
+	{
+		std::ifstream file(path);
+		if (!file.is_open())
+			return false;
+
+		nlohmann::json j;
+		file >> j;
+		file.close();
+
+		// Clear current document
+		m_objects.clear();
+		m_dirty.clear();
+		m_selectedId = 0;
+
+		// Deserialize
+		return JsonSerializer::DeserializeDocument(*this, j);
+	}
+	catch (...)
+	{
+		return false;
 	}
 }
 

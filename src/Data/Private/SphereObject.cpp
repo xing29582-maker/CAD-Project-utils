@@ -5,7 +5,9 @@ using namespace cadutils;
 
 CAD_DEFAULT_CTOR(SphereObject)
 {
-
+    // Initialize with default values for deserialization
+    m_center.SetValueSilent(Point3d(0, 0, 0));
+    m_radius.SetValueSilent(1.0);
 }
 
 cadutils::SphereObject::SphereObject(const std::string& name, const Point3d& center, double radius)

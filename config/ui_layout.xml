@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <UILayout>
     <MenuBar>
+        <Menu name="File">
+            <Item command="cmd.file_save" shortcut="Ctrl+S" />
+            <Item command="cmd.file_load" shortcut="Ctrl+O" />
+        </Menu>
         <Menu name="Edit">
             <Item command="cmd.undo"            shortcut="Ctrl+Z" />
             <Item command="cmd.redo"            shortcut="Ctrl+Y" />
@@ -15,6 +19,9 @@
 
     <ToolBars>
         <ToolBar name="Main">
+            <Item command="cmd.file_save" />
+            <Item command="cmd.file_load" />
+            <Separator/>
             <Item command="cmd.undo" />
             <Item command="cmd.redo" />
             <Separator/>

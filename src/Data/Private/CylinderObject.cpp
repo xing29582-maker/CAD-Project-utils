@@ -5,7 +5,10 @@ using namespace cadutils;
 
 CAD_DEFAULT_CTOR(CylinderObject)
 {
-
+    // Initialize with default values for deserialization
+    m_center.SetValueSilent(Point3d(0, 0, 0));
+    m_radius.SetValueSilent(1.0);
+    m_height.SetValueSilent(2.0);
 }
 
 CylinderObject::CylinderObject(const std::string& name, const Point3d& center,

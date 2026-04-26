@@ -13,8 +13,8 @@ namespace cadutils
     {
     CAD_OBJECT_BEGIN(Object)
         CAD_PROP(std::string, objName, DirtyFlags::None)
-        CAD_PROP(ObjectId, objId,  DirtyFlags::None)
-        CAD_PROP(std::shared_ptr<IBody>, shapeBody, DirtyFlags::Geometry)
+        CAD_PROP_TRANSIENT(ObjectId, objId,  DirtyFlags::None)
+        CAD_PROP_TRANSIENT(std::shared_ptr<IBody>, shapeBody, DirtyFlags::Geometry)
     CAD_OBJECT_END;
     public:
         explicit Object(const std::string &name);
