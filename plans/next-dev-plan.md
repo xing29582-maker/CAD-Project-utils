@@ -1,25 +1,33 @@
 # CAD-Project-utils 后续开发方案
 
+> **状态更新（2026-08-09）**
+>
+> 阶段一～四均已实现并通过编译：阶段一（渲染 Bug 修复）、阶段二（选中联动）、阶段三（Box/Cylinder 对象扩展）、阶段四（文档持久化 Save/Load）。
+> 当前处于**阶段五（命令系统增强）**：QAction enabled 状态实时刷新（ActionManager）尚未实现。
+> 阶段六（参数化建模）仍为长期规划，先设计后编码。
+
 ## 当前状态总结
 
 ### 已完成
 - Document/Object/Property 数据模型 + 编译期宏注册系统
 - Transaction + TransactionManager 事务系统（属性变更 + 对象增删 Undo/Redo）
-- ICommand + CommandRegistry + REGISTER_COMMAND 命令系统
+- ICommand + CommandRegistry + REGISTER_COMMAND 命令系统（含 Undo/Redo/AddSphere/AddBox/AddCylinder/DeleteSelected/Save/Load）
 - XML 驱动 UI 构建（CommandUIBuilder）
-- OpenCASCADE 几何造型层（SphereObject）
+- OpenCASCADE 几何造型层（Sphere / Box / Cylinder 三类对象）
 - OSG + Qt 渲染层（嵌入 QOpenGLWidget，拾取选中）
 - 增量/全量刷新管线（RenderSystem → GraphicsScene → RenderView）
+- 选中联动（3D 视图 ↔ 树视图 ↔ 属性面板）
+- JSON 文档持久化（JsonSerializer + SaveCommand/LoadCommand，`MetaRegistry::CreateByTypeName` 注册式对象创建）
 
-### 已知 Bug
-1. **点击球体后球体消失** — `RenderView::refresh()` 的清理逻辑在增量模式下误删节点
-2. `MainWindow::m_viewport` 声明未使用（残留代码）
+### 已知 Bug（阶段一已修复）
+1. ~~点击球体后球体消失~~ — `RenderView::refresh()` 已增加 `fullSync` 参数，增量模式不再误删节点
+2. ~~`MainWindow::m_viewport` 声明未使用~~ — 已删除残留代码
 
 ---
 
 ## 开发阶段
 
-### 阶段一：Bug 修复与渲染稳定性
+### 阶段一：Bug 修复与渲染稳定性 ✅ 已完成
 
 **1.1 修复 RenderView::refresh() 增量/全量语义**
 
@@ -43,7 +51,7 @@ refreshDirty(dirtyMap) — 增量：只更新传入的节点，不删除任何�
 
 ---
 
-### 阶段二：选中状态统一
+### 阶段二：选中状态统一 ✅ 已完成
 
 **2.1 3D 视图 → 树视图联动**
 
@@ -69,7 +77,7 @@ refreshDirty(dirtyMap) — 增量：只更新传入的节点，不删除任何�
 
 ---
 
-### 阶段三：对象类型扩展
+### 阶段三：对象类型扩展 ✅ 已完成
 
 **3.1 BoxObject**
 
@@ -103,7 +111,7 @@ ObjectFactory::Create("Sphere", name, params);
 
 ---
 
-### 阶段四：文档持久化
+### 阶段四：文档持久化 ✅ 已完成
 
 **4.1 序列化框架**
 
@@ -145,7 +153,7 @@ ObjectFactory::Create("Sphere", name, params);
 
 ---
 
-### 阶段五：命令系统增强
+### 阶段五：命令系统增强 ⏳ 当前阶段（5.1 待实现，5.2 可选）
 
 **5.1 命令 Enabled 状态实时刷新**
 
@@ -169,7 +177,7 @@ virtual std::string GetShortcut() const { return ""; }
 
 ---
 
-### 阶段六：参数化建模准备
+### 阶段六：参数化建模准备 🔲 长期规划
 
 **6.1 约束/依赖系统设计**
 

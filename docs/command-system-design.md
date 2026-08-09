@@ -138,9 +138,13 @@ class CommandUIBuilder {
 
 | 命令 ID | 类名 | 功能 |
 |---------|------|------|
+| cmd.file_save | SaveCommand | 保存文档到 `.cad` 文件 |
+| cmd.file_load | LoadCommand | 从 `.cad` 文件加载文档（加载后清空事务栈） |
 | cmd.undo | UndoCommand | 撤销上一步操作 |
 | cmd.redo | RedoCommand | 重做上一步操作 |
 | cmd.add_sphere | AddSphereCommand | 添加球体对象 |
+| cmd.add_box | AddBoxCommand | 添加长方体对象 |
+| cmd.add_cylinder | AddCylinderCommand | 添加圆柱体对象 |
 | cmd.delete_selected | DeleteSelectedCommand | 删除选中对象 |
 
 ## 执行流程
@@ -173,7 +177,11 @@ class CommandUIBuilder {
 | Application/Commands/UndoCommand.h/.cpp | Application | 撤销命令 |
 | Application/Commands/RedoCommand.h/.cpp | Application | 重做命令 |
 | Application/Commands/AddSphereCommand.h/.cpp | Application | 添加球体命令 |
+| Application/Commands/AddBoxCommand.h/.cpp | Application | 添加长方体命令 |
+| Application/Commands/AddCylinderCommand.h/.cpp | Application | 添加圆柱体命令 |
 | Application/Commands/DeleteSelectedCommand.h/.cpp | Application | 删除选中命令 |
+| Application/Commands/SaveCommand.h/.cpp | Application | 保存文档命令 |
+| Application/Commands/LoadCommand.h/.cpp | Application | 加载文档命令 |
 | Application/Commands/RegisterAllCommands.h/.cpp | Application | 链接保障 |
 | Application/UI/CommandUIBuilder.h/.cpp | Application | XML 解析 + UI 构建 |
 | config/ui_layout.xml | 配置 | UI 布局配置 |

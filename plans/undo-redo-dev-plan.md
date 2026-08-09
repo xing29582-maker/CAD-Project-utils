@@ -1,5 +1,12 @@
 # CAD-Project-utils 事务系统开发方案（方案 B — TransactionManager）
 
+> **状态更新（2026-08-09）**：本方案全部阶段已实施完成并合入主线（`Transaction` 纯数据记录类 + `TransactionManager` 事务栈 + `Document` 通知链 + `ExecStateGuard` + Undo/Redo 补写 DirtyFlags + UI 集成）。实现可参考：
+> - [`src/Platform/Public/TransactionManager.h`](../src/Platform/Public/TransactionManager.h) / `src/Platform/Private/TransactionManager.cpp`
+> - [`src/Platform/Public/Transaction.h`](../src/Platform/Public/Transaction.h) / `src/Platform/Private/Transaction.cpp`
+> - [`src/Data/Public/Document.h`](../src/Data/Public/Document.h)（`SetChangeSink` / `ExecStateGuard` / `ApplyPropertySilent`）
+> - 设计文档：[`docs/transaction-system-design.md`](../docs/transaction-system-design.md)
+> 后续增强项：事务合并（连续同类操作合并为单步）、事务上限（防内存无限增长）。
+
 ## 一、现状问题总结
 
 | # | 问题 | 所在文件 | 严重程度 |

@@ -1,0 +1,18 @@
+{
+  "documentName": "Document",
+  "nextObjectId": 3,
+  "objects": [
+    {
+      "id": 2,
+      "properties": {
+        "objName": "Box_1",
+        "center": "0,0,0",
+        "height": "40.000000",
+        "length": "80.000000",
+        "width": "60.000000"
+      },
+      "type": "BoxObject"
+    }
+  ],
+  "version": 1
+}

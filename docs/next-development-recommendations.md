@@ -1,5 +1,18 @@
 # 后续开发建议（基于当前代码状态）
 
+> **状态更新（2026-08-09）**
+>
+> 本文档原推荐的"第一优先级：文档持久化"已落地完成：
+>
+> - ✅ `JsonSerializer`（[`src/Data/Private/JsonSerializer.h`](../src/Data/Private/JsonSerializer.h)）：基于 `PropertyDescriptor.serializable` 的通用序列化，`addWithId` 恢复对象 ID，`nextObjectId` 计数恢复
+> - ✅ `Document::SaveToFile / LoadFromFile`（[`src/Data/Public/Document.h`](../src/Data/Public/Document.h)）
+> - ✅ `SaveCommand / LoadCommand`（`cmd.file_save` / `cmd.file_load`），Load 后清空事务栈并全量刷新
+> - ✅ `ObjectFactory` 注册化能力由 `MetaRegistry::CreateByTypeName` + `TypeMeta::creator` 承担（`ObjectFactory` 仍保留为便捷入口）
+>
+> 当前主线已转移，新的推荐优先级见 [第 4 节](#4-接下来最优先的开发主线)（已更新）。
+
+---
+
 ## 1. 目的
 
 本文档基于当前工程实现状态、已有设计文档以及最新编译结果，对项目接下来的开发方向进行整理，目标是：
@@ -71,7 +84,15 @@
 
 ## 4. 接下来最优先的开发主线
 
-## 4.1 第一优先级：文档持久化
+> **2026-08-09 更新**：以下 4.1 节（文档持久化）与 6 节（ObjectFactory 通用化）均已实现。
+> 当前推荐主线调整为：
+>
+> 1. **命令 UI 状态实时刷新**（原 [第 7 节](#7-第二优先级命令系统增强) 的 7.1/7.2）：QAction enabled 状态随选中/文档/事务栈变化自动同步 —— 当前尚未实现，为第一优先级。
+> 2. **补齐属性面板**：Sphere/Box/Cylinder 的 `center` 未暴露到 UI（`CenterX/Y/Z` 枚举已定义未使用），对象名不可编辑。
+> 3. **补自动化测试**（doctest 已引入未使用）：序列化 roundtrip、事务三种操作、AnyValue 类型转换。
+> 4. 工程质量：全库编码统一 UTF-8、`MeshGenerator` 平滑法线、文档与构建一致性维护。
+
+## 4.1 第一优先级（已完成）：文档持久化
 
 这是当前最值得优先推进的方向。
 
@@ -414,27 +435,23 @@ virtual std::string GetShortcut() const { return ""; }
 
 ## 9. 推荐的执行顺序
 
-基于当前代码状态，建议执行顺序调整为：
+> **2026-08-09 更新**：原步骤一（阶段三验收）、步骤二（文档持久化）、步骤三（ObjectFactory 注册化，由 `MetaRegistry::CreateByTypeName` 承担）均已完成。剩余执行顺序：
 
-### 步骤一：阶段三功能验收
-目标：把“编译通过”转为“功能闭环成立”。
+### 步骤一：命令 UI 状态实时刷新（ActionManager）
+目标：Undo/Redo/Delete/Save 等 QAction 的 enabled 与 `CanExecute()` 实时一致。
 
-### 步骤二：文档持久化最小可用版本
-目标：支持当前文档 Save / Load。
+### 步骤二：补齐属性面板
+目标：center（CenterX/Y/Z）等全部参数可编辑，对象名允许修改。
 
-### 步骤三：ObjectFactory 注册化
-目标：为 Save / Load 和未来对象扩展提供统一创建入口。
+### 步骤三：补自动化测试
+目标：用已引入的 doctest 锁定序列化 roundtrip、事务 Undo/Redo（属性/增删）、AnyValue 类型转换。
 
-### 步骤四：ActionManager + 命令状态刷新
-目标：让 UI 可用状态和文档状态一致。
-
-### 步骤五：补充设计文档
-建议新增：
-
-- `docs/persistence-design.md`
-- `docs/object-factory-design.md`
-- `docs/command-ui-refresh-design.md`
-- `docs/parametric-modeling-preparation.md`
+### 步骤四：工程质量与设计文档
+- 全库编码统一 UTF-8（消除 C4819 与乱码注释）
+- `MeshGenerator` 平滑法线
+- 补充设计文档：
+  - `docs/command-ui-refresh-design.md`（ActionManager 设计）
+  - `docs/parametric-modeling-preparation.md`（参数化建模准备，先设计后编码）
 
 ---
 
@@ -497,18 +514,19 @@ Load 时是否保留对象 `id`，会影响：
 
 ## 11. 最终结论
 
-从当前代码状态看，接下来的开发重点不应再放在“继续添加更多几何体类型”，而应放在让现有系统形成真正的业务闭环。
+> **2026-08-09 更新**：原结论中"能保存、能加载"的目标已实现（`SaveCommand` / `LoadCommand` / `JsonSerializer` 已落地）。
+
+从当前代码状态看，系统骨架（数据模型 / 属性 / 事务 Undo-Redo / 命令 / 持久化）已完整，接下来的开发重点不应再放在"继续添加更多几何体类型"，而应放在让现有系统形成稳定的 UI 闭环与质量保障。
 
 ### 建议主线
 
-1. 完成阶段三功能验收
-2. 进入“文档持久化”开发
-3. 在阶段四中顺手完成 [`ObjectFactory`](../src/Data/Public/ObjectFactory.h) 的注册化重构
-4. 然后实现命令 UI 状态实时刷新
-5. 参数化建模先写设计，不急于编码
+1. 命令 UI 状态实时刷新（ActionManager）—— 让 QAction enabled 与文档状态一致
+2. 补齐属性面板（center 等全部参数可编辑、对象名可改）
+3. 用 doctest 补自动化测试，锁定序列化与事务行为
+4. 参数化建模先写设计，不急于编码
 
 ### 一句话概括
 
-**当前最该做的是让已有对象“能保存、能加载、能稳定管理命令状态”，而不是继续单纯增加几何类型。**
+**系统已经"能保存、能加载、能撤销重做"，当前最该做的是让 UI 命令状态与文档状态实时一致，并用测试锁定现有行为。**
 
-这一步完成后，项目才真正从“技术演示原型”进入“可持续迭代的 CAD 原型框架”阶段。
+这一步完成后，项目才真正从"技术演示原型"进入"可持续迭代的 CAD 原型框架"阶段。

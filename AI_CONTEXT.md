@@ -1,5 +1,5 @@
 cadutils_demo (exe)
-  └─► cadutils_application (STATIC)
+  └─► cadutils_application (SHARED)
         ├─► cadutils_data (SHARED)
         ├─► cadutils_render (SHARED)
         ├─► cadutils_platform (SHARED)
@@ -24,7 +24,7 @@ Geometry — 几何造型层，封装 OpenCASCADE。提供 [`IBody`](src/Geometr
 
 Render — 渲染层，封装 OpenSceneGraph + Qt。提供 [`IRenderView`](src/Render/Public/IRenderView.h)、[`IGraphicsNode`](src/Render/Public/IGraphicsNode.h)。
 
-Application — 应用层（静态库），包含 [`MainWindow`](src/Application/UI/MainWindow.h)（Qt 主窗口）、[`GraphicsScene`](src/Application/Scene/GraphicsScene.h)（场景图管理）、[`RenderSystem`](src/Application/App/RenderSystem.h)（文档→渲染同步）、命令实现、[`CommandUIBuilder`](src/Application/UI/CommandUIBuilder.h)（XML → QAction 构建）。
+Application — 应用层（共享库），包含 [`MainWindow`](src/Application/UI/MainWindow.h)（Qt 主窗口）、[`GraphicsScene`](src/Application/Scene/GraphicsScene.h)（场景图管理）、[`RenderSystem`](src/Application/App/RenderSystem.h)（文档→渲染同步）、命令实现、[`CommandUIBuilder`](src/Application/UI/CommandUIBuilder.h)（XML → QAction 构建）。
 
 Document / Object / Property 体系
 [`Document`](src/Data/Public/Document.h) — 文档容器，持有 `unordered_map<ObjectId, shared_ptr<IObject>>`，自增分配 ID。实现 [`IDirtySink`](src/Data/Public/IDirtySink.h) 接口收集脏标记。持有一个 [`IPropertyChangeSink`](src/Data/Public/IPropertyChangeSink.h)`* m_changeSink` 指针，由 [`TransactionManager::BeginTransaction()`](src/Platform/Public/TransactionManager.h:21) 设置为当前活跃的 [`Transaction`](src/Platform/Public/Transaction.h)。支持 `add/remove/restore` 三种对象管理操作，`add/remove` 在非回放状态下会通知 `changeSink`。
@@ -152,10 +152,18 @@ UI 层
 [`main.cpp`](src/main.cpp) 现在额外包含 [`RegisterAllCommands.h`](src/Application/Commands/RegisterAllCommands.h) 并调用 `RegisterAllCommands()`，作为命令注册初始化的显式入口。
 
 构建系统变化
-[`src/Application/CMakeLists.txt`](src/Application/CMakeLists.txt) 新增了 `Application/Commands` include 路径。
-[`src/CMakeLists.txt`](src/CMakeLists.txt) 新增：
-- `Application/Commands` 给 exe 的 include 路径
-- post-build 复制 [`config/ui_layout.xml`](config/ui_layout.xml) 到输出目录的 `config/` 下
+[`src/Application/CMakeLists.txt`](src/Application/CMakeLists.txt) 为 `cadutils_application`（SHARED）公开 `Application/UI|App|Scene|Commands` 及 Data/Common/Geometry/Render/Platform 的 include 路径。
+[`src/CMakeLists.txt`](src/CMakeLists.txt)：
+- exe 通过 [`cadutils_application`](src/Application/CMakeLists.txt) 传递依赖，无需直接 include `Application/Commands`
+- 不再 post-build 复制 [`config/ui_layout.xml`](config/ui_layout.xml)，[`MainWindow`](src/Application/UI/MainWindow.cpp) 启动时按 `applicationDirPath` 向上逐级搜索（仓库根目录运行时命中源 `config/`）
+
+文档持久化
+[`JsonSerializer`](src/Data/Private/JsonSerializer.h) 基于 [`TypeMeta`](src/Data/Public/TypeMeta.h) + [`PropertyDescriptor`](src/Data/Public/PropertyDescriptor.h)（`serializable` 标记）做通用序列化：
+- 序列化：遍历 `Document` 对象 → 遍历可序列化属性 → `PropertyBase::Value()` 取 `AnyValue` 写 JSON（`version`/`documentName`/`nextObjectId`/`objects[].type,id,properties`）
+- 反序列化：`MetaRegistry::CreateByTypeName` 创建对象 → `applyAny` 静默写回属性 → `Document::addWithId` 恢复对象 ID → `setNextId` 恢复计数
+- [`Document::SaveToFile/LoadFromFile`](src/Data/Public/Document.h)：`LoadFromFile` 清空当前文档再反序列化
+- [`SaveCommand`](src/Application/Commands/SaveCommand.cpp)（`cmd.file_save`）/ [`LoadCommand`](src/Application/Commands/LoadCommand.cpp)（`cmd.file_load`）：文件对话框 + `.cad` 扩展名；Load 后 `TransactionManager::Clear()` 清空事务栈并全量刷新
+- 运行时缓存属性（如 `shapeBody`）通过 `CAD_PROP_TRANSIENT` 标记为不可序列化
 
 AnyValue 类型支持
 [`AnyValue`](src/Common/Public/NameDefine.h) 基于 string 的类型擦除，支持以下类型的序列化/反序列化：
@@ -168,3 +176,5 @@ AnyValue 类型支持
 文档
 - 事务系统设计文档：[`docs/transaction-system-design.md`](docs/transaction-system-design.md)
 - 命令系统设计文档：[`docs/command-system-design.md`](docs/command-system-design.md)
+- 持久化系统设计文档：[`docs/persistence-system-design.md`](docs/persistence-system-design.md)
+- 后续开发建议：[`docs/next-development-recommendations.md`](docs/next-development-recommendations.md)
