@@ -64,7 +64,8 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 
 # MSVC 常用设置（可选）
 if(MSVC)
-  add_compile_options(/W4 /permissive-)
+  # /utf-8：源码统一按 UTF-8 解析（消除中文注释在 GBK 代码页下的乱码与 C4819 警告）
+  add_compile_options(/W4 /permissive- /utf-8)
 endif()
 
 	

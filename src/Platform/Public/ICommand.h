@@ -38,6 +38,12 @@ namespace cadutils
         // Whether the command can currently execute
         virtual bool CanExecute(const CommandContext& ctx) const { (void)ctx; return true; }
 
+        // Whether the command is visible in UI (e.g. permission / mode based). Default: visible.
+        virtual bool IsVisible(const CommandContext& ctx) const { (void)ctx; return true; }
+
+        // Whether the command is in a checked/toggled state (e.g. grid visibility). Default: unchecked.
+        virtual bool IsChecked(const CommandContext& ctx) const { (void)ctx; return false; }
+
         // Execute the command
         virtual void Execute(CommandContext& ctx) = 0;
     };

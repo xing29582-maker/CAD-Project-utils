@@ -1,35 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <UILayout>
+    <!-- 定义区：普通 Action（无父子层级概念；父子执行关系由 ActionStack 运行时建立） -->
+    <Actions>
+        <Action id="act.file_save" name="Save" command="cmd.file_save" shortcut="Ctrl+S" />
+        <Action id="act.file_load" name="Load" command="cmd.file_load" shortcut="Ctrl+O" />
+
+        <Action id="act.undo" name="Undo" command="cmd.undo" shortcut="Ctrl+Z" />
+        <Action id="act.redo" name="Redo" command="cmd.redo" shortcut="Ctrl+Y" />
+
+        <Action id="act.add_sphere" name="Sphere" command="cmd.add_sphere" />
+        <Action id="act.add_box" name="Box" command="cmd.add_box" />
+        <Action id="act.add_cylinder" name="Cylinder" command="cmd.add_cylinder" />
+
+        <Action id="act.delete_selected" name="Delete" command="cmd.delete_selected" shortcut="Delete" />
+
+        <!-- 展示容器（子菜单/下拉）：仅用于 UI 分组展示，点击子项 = 直接执行对应 Action -->
+        <Action id="act.add_primitive" name="Add Primitive">
+            <ActionRef id="act.add_sphere" />
+            <ActionRef id="act.add_box" />
+            <ActionRef id="act.add_cylinder" />
+        </Action>
+    </Actions>
+
+    <!-- 挂载区：引用定义区（同一 Action 可被多次引用，共享实例与状态） -->
     <MenuBar>
         <Menu name="File">
-            <Item command="cmd.file_save" shortcut="Ctrl+S" />
-            <Item command="cmd.file_load" shortcut="Ctrl+O" />
+            <ActionRef id="act.file_save" />
+            <ActionRef id="act.file_load" />
         </Menu>
         <Menu name="Edit">
-            <Item command="cmd.undo"            shortcut="Ctrl+Z" />
-            <Item command="cmd.redo"            shortcut="Ctrl+Y" />
+            <ActionRef id="act.undo" />
+            <ActionRef id="act.redo" />
             <Separator/>
-            <Item command="cmd.add_sphere" />
-            <Item command="cmd.add_box" />
-            <Item command="cmd.add_cylinder" />
+            <ActionRef id="act.add_primitive" />
             <Separator/>
-            <Item command="cmd.delete_selected" shortcut="Delete" />
+            <ActionRef id="act.delete_selected" />
         </Menu>
     </MenuBar>
 
     <ToolBars>
         <ToolBar name="Main">
-            <Item command="cmd.file_save" />
-            <Item command="cmd.file_load" />
+            <ActionRef id="act.file_save" />
+            <ActionRef id="act.file_load" />
             <Separator/>
-            <Item command="cmd.undo" />
-            <Item command="cmd.redo" />
+            <ActionRef id="act.undo" />
+            <ActionRef id="act.redo" />
             <Separator/>
-            <Item command="cmd.add_sphere" />
-            <Item command="cmd.add_box" />
-            <Item command="cmd.add_cylinder" />
+            <ActionRef id="act.add_primitive" />
             <Separator/>
-            <Item command="cmd.delete_selected" />
+            <ActionRef id="act.delete_selected" />
         </ToolBar>
     </ToolBars>
 </UILayout>

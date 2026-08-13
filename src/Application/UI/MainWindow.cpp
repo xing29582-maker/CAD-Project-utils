@@ -11,6 +11,8 @@
 #include "TransactionManager.h"
 #include "CommandRegistry.h"
 #include "CommandUIBuilder.h"
+#include "ActionManager.h"
+#include "ActionUIBuilder.h"
 
 #include <QItemSelectionModel>
 #include <QHeaderView>
@@ -44,30 +46,33 @@ MainWindow::MainWindow(QWidget* parent)
     buildTreeModel();
 
     m_txMgr = std::make_shared<TransactionManager>(m_doc);
+    m_actionMgr = std::make_shared<ActionManager>();
+    m_ctx = std::make_shared<CommandContext>();
+    m_ctx->doc = m_doc;
+    m_ctx->txMgr = m_txMgr;
+    m_ctx->renderSystem = nullptr; // 稍后在 RenderSystem 创建后赋值
+    m_ctx->mainWindow = this;
 
     std::shared_ptr<IRenderView> renderView = IRenderView::createRenderView();
     setCentralWidget(renderView->widget());
     std::shared_ptr<GraphicsScene> grepScene = std::make_shared<GraphicsScene>();
     MeshGenerator meshGenerator;
     m_renderSystem = std::make_shared<RenderSystem>(grepScene, meshGenerator, renderView);
+    m_ctx->renderSystem = m_renderSystem.get();
+
     renderView->SetOnPicked([&](ObjectId id)
         {
             m_doc->SetSelected(id);
             m_renderSystem->GetRenderView()->SetSelected(id);
             SelectInTree(id);
             UpdateProperties(id);
+            RefreshActions();
         });
     TessellationOptions tessellationOptions;
     m_renderSystem->SyncFromDocument(m_doc, tessellationOptions);
     m_renderSystem->Refresh();
 
-    // Build command-driven UI from XML config
-    auto ctx = std::make_shared<CommandContext>();
-    ctx->doc = m_doc;
-    ctx->txMgr = m_txMgr;
-    ctx->renderSystem = m_renderSystem.get();
-    ctx->mainWindow = this;
-
+    // Build Action-driven UI from XML config
     // Try multiple paths to locate ui_layout.xml
     QStringList searchPaths;
     searchPaths << QCoreApplication::applicationDirPath() + "/config/ui_layout.xml";
@@ -80,7 +85,7 @@ MainWindow::MainWindow(QWidget* parent)
     {
         if (QFile::exists(path))
         {
-            loaded = CommandUIBuilder::BuildFromXml(path, this, CommandRegistry::Instance(), ctx);
+            loaded = ActionUIBuilder::BuildFromXml(path, this, *m_actionMgr, m_ctx);
             if (loaded)
             {
                 qDebug() << "Loaded UI layout from:" << path;
@@ -93,8 +98,11 @@ MainWindow::MainWindow(QWidget* parent)
     {
         qWarning() << "Could not find ui_layout.xml in any search path, building fallback UI";
         // Fallback: build minimal menu manually
-        CommandUIBuilder::BuildFallback(this, CommandRegistry::Instance(), ctx);
+        CommandUIBuilder::BuildFallback(this, CommandRegistry::Instance(), m_ctx);
     }
+
+    // 初始状态同步（undo/redo/delete 等按钮按当前文档状态置灰/可用）
+    RefreshActions();
 }
 
 void MainWindow::buildUi()
@@ -236,6 +244,13 @@ void MainWindow::UpdatePropertiesById(ObjectId id)
 void MainWindow::RebuildAfterCommand()
 {
     rebuildTreeModel();
+    RefreshActions();
+}
+
+void MainWindow::RefreshActions()
+{
+    if (m_actionMgr && m_ctx)
+        m_actionMgr->RefreshAll(*m_ctx);
 }
 
 void MainWindow::SetPropRow(int row, const QString& name, const QString& value
@@ -272,6 +287,7 @@ void MainWindow::onTreeSelectionChanged(const QModelIndex& current, const QModel
         m_doc->SetSelected(0);
         m_renderSystem->GetRenderView()->SetSelected(0);
         UpdateProperties(0);
+        RefreshActions();
         return;
     }
 
@@ -282,6 +298,7 @@ void MainWindow::onTreeSelectionChanged(const QModelIndex& current, const QModel
         m_doc->SetSelected(0);
         m_renderSystem->GetRenderView()->SetSelected(0);
         UpdateProperties(0);
+        RefreshActions();
         return;
     }
 
@@ -289,6 +306,7 @@ void MainWindow::onTreeSelectionChanged(const QModelIndex& current, const QModel
     m_doc->SetSelected(id);
     m_renderSystem->GetRenderView()->SetSelected(id);
     UpdateProperties(id);
+    RefreshActions();
 }
 
 void MainWindow::onTreeDoubleClicked(const QModelIndex& idx)
@@ -320,6 +338,7 @@ void MainWindow::OnPropItemChanged(QStandardItem* item)
     m_txMgr->Commit();
 
     SyncAndRefresh(false);
+    RefreshActions();
 }
 
 void MainWindow::SelectInTree(ObjectId id)

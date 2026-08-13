@@ -14,7 +14,10 @@ namespace cadutils
         rs->Refresh(true);
 
         if (mw)
+        {
             mw->RebuildAfterCommand();
+            mw->RefreshActions();
+        }
     }
 
 } // namespace cadutils

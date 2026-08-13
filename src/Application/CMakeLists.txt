@@ -33,6 +33,7 @@ target_include_directories(cadutils_application PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/App
   ${CMAKE_CURRENT_SOURCE_DIR}/Scene
   ${CMAKE_CURRENT_SOURCE_DIR}/Commands
+  ${CMAKE_CURRENT_SOURCE_DIR}/Actions
   ${CMAKE_SOURCE_DIR}/src/Data
   ${CMAKE_SOURCE_DIR}/src/Common/Public
   ${CMAKE_SOURCE_DIR}/src/Geometry/Public

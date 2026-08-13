@@ -16,6 +16,8 @@ namespace cadutils
     class IObject;
     class RenderSystem;
     class TransactionManager;
+    class ActionManager;
+    struct CommandContext; // 注意：CommandContext 在 ICommand.h 中以 struct 定义，前置声明必须一致（否则 MSVC 修饰名 U/V 不匹配）
 
     class MainWindow : public QMainWindow
     {
@@ -27,6 +29,9 @@ namespace cadutils
         void RebuildAfterCommand();
         void UpdatePropertiesById(ObjectId id);
         void SyncAndRefresh(bool isAll);
+
+        // 刷新所有 Action 状态（enabled/visible/checked 来自命令，经 ActionManager 求值）
+        void RefreshActions();
 
         // Accessors for command context setup
         std::shared_ptr<Document> GetDocument() const { return m_doc; }
@@ -66,6 +71,8 @@ namespace cadutils
         std::shared_ptr<Document> m_doc;
         std::shared_ptr<RenderSystem> m_renderSystem;
         std::shared_ptr<TransactionManager> m_txMgr;
+        std::shared_ptr<ActionManager> m_actionMgr;
+        std::shared_ptr<CommandContext> m_ctx;
 
         bool m_updatingProps = false;
         bool m_updatingTree = false;
